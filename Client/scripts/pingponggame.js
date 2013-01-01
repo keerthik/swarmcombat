@@ -20,7 +20,7 @@ function CreatePaddles() {
 //Ball
 function CreateBall() {
 	Crafty.e("2D, DOM, Color, Collision")
-		.color('rgb(0,0,255)')
+		.color('rgb(0,255,255)')
 		.attr({ x: 300, y: 150, w: 10, h: 10, 
 				dX: Crafty.math.randomInt(2, 5), 
 				dY: Crafty.math.randomInt(2, 5) })
