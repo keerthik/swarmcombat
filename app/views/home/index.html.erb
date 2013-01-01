@@ -1,14 +1,7 @@
-<%= content_for :javascript_includes do %>
-	<%= javascript_include_tag "pingponggame.js" %>
-<% end %>
 
 <h1>Game goes here!</h1>
-We have liftoff.
-<script type="text/javascript">
-	RunGame();
-</script>
 
-<!--iframe src=<%= request.protocol + request.host_with_port + games_path %> id='gameframe' height='600' width='620'>
+<iframe src=<%= request.protocol + request.host_with_port + games_path %> id='gameframe' height='600' width='620'>
 	This is an iframe. sorry.
 </iframe>
 <script type='text/javascript'>
@@ -17,4 +10,4 @@ We have liftoff.
       frames['gameframe'].focus(); // Works in all browser, except Firefox
     else
       document.getElementById('gameframe').focus();  // Works in Firefox
-</script-->
+</script>
