@@ -1,5 +1,5 @@
 function RunGame() {
-	Crafty.init(600, 400);
+	Crafty.init(600, 300);
 	Crafty.background('rgb(0,0,0)');
 	CreatePaddles();
 	CreateBall();
@@ -8,18 +8,41 @@ function RunGame() {
 
 //Paddles
 function CreatePaddles() {
-	Crafty.e("Paddle, 2D, DOM, Color, Multiway")
+	Crafty.c("CustomPaddle", {
+		ready:true,
+		init:function (){
+		},
+		_draw:function (ctx, po){
+			var pos = {	x: po._x,
+						y: po._y,
+						w: po._w,
+						h: po._h
+						};
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = 'rgb(255,0,0)';
+			ctx.beginPath();
+			ctx.moveTo(pos.x, pos.y);
+			ctx.lineTo(pos.x + pos.w, pos.y);
+			ctx.lineTo(pos.x + pos.w, pos.y + 15);
+			ctx.stroke();
+		},
+	});
+	Crafty.e("Paddle, 2D, Canvas, Color, Multiway")
+		.bind('Draw', function (e) {
+			// Custom Vector art
+			//this._draw(e.ctx, e.pos);
+		})
 		.color('rgb(255,0,0)')
-		.attr({ x: 20, y: 100, w: 10, h: 100 })
+		.attr({x: 20, y: 100, w: 10, h: 100 })
 		.multiway(4, { W: -90, S: 90 });
-	Crafty.e("Paddle, 2D, DOM, Color, Multiway")
+	Crafty.e("Paddle, 2D, Canvas, Color, Multiway")
 		.color('rgb(0,255,0)')
 		.attr({ x: 580, y: 100, w: 10, h: 100 })
 		.multiway(4, { UP_ARROW: -90, DOWN_ARROW: 90 });
 }
 //Ball
 function CreateBall() {
-	Crafty.e("2D, DOM, Color, Collision")
+	Crafty.e("2D, Canvas, Color, Collision")
 		.color('rgb(0,255,255)')
 		.attr({ x: 300, y: 150, w: 10, h: 10, 
 				dX: Crafty.math.randomInt(2, 5), 
@@ -44,15 +67,18 @@ function CreateBall() {
 			this.y += this.dY;
 		})
 		.onHit('Paddle', function () {
-		this.dX *= -1;
-	})
+			this.dX *= -1;
+		})
 }
 //Score boards
 function CreateScoreBoards() {
 	Crafty.e("LeftPoints, DOM, 2D, Text")
 		.attr({ x: 20, y: 20, w: 100, h: 20, points: 0 })
-		.text("0 Points");
+		.text("0 Points")
+		.textColor('rgb(255,0,0)');
 	Crafty.e("RightPoints, DOM, 2D, Text")
 		.attr({ x: 515, y: 20, w: 100, h: 20, points: 0 })
-		.text("0 Points");
+		.text("0 Points")
+		.textColor('rgb(0,255,0)');
 }
+
