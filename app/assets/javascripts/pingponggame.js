@@ -75,10 +75,10 @@ function CreateScoreBoards() {
 	Crafty.e("LeftPoints, DOM, 2D, Text")
 		.attr({ x: 20, y: 20, w: 100, h: 20, points: 0 })
 		.text("0 Points")
-		.textColor('rgb(255,0,0)');
+		.textColor('#FF0000');
 	Crafty.e("RightPoints, DOM, 2D, Text")
 		.attr({ x: 515, y: 20, w: 100, h: 20, points: 0 })
 		.text("0 Points")
-		.textColor('rgb(0,255,0)');
+		.textColor('#00FF00');
 }
 
