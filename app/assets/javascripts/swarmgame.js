@@ -1,18 +1,24 @@
 function RunGame() {
 	Crafty.init(600, 300);
 	Crafty.background('rgb(0,0,0)');
-	CreatePaddles();
+	CreateDrones();
 	CreateBall();
 	//CreateScoreBoards();
 }
 
 //Paddles
-function CreatePaddles() {
-	Crafty.c("Triangle", {
+function CreateDrones() {
+	
+	Crafty.c("Drone", {
 		ready:true,
+		facing:0, 
+		hp:0,
+		maxhp:100,
+		instructions:"this.facing += 0.05;",
 		init:function (){
+			this.hp = this.maxhp;
 		},
-		_draw:function (ctx, po){
+		_draw: function (ctx, po){
 			var pos = {	x: po._x,
 						y: po._y,
 						w: po._w,
@@ -21,18 +27,32 @@ function CreatePaddles() {
 			var size = 20;
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.facing, size);
-			drawTriangle(ctx, pos, point);
+			drawTriangle(ctx, pos, point, 'rgb(0,255,0)');
+			drawHp(ctx, pos, size, this.hp, this.maxhp, 'rgb(255,0,0)');
 		},
+		_triggerKey:{13:1},
+		_keyup: function (e) {
+			if (this._triggerKey[e.key]) {
+				this.instructions = $('#greenstruction').val();
+			}
+		},
+		_react: function () {
+			//console.log($('#greenstruction').val());
+			eval(this.instructions);
+		}
 	});
-	Crafty.e("Trident, 2D, Canvas, Triangle, Multiway")
+	Crafty.e("Trident, 2D, Canvas, Drone")
 		.bind('Draw', function (e) {
 			// Custom Vector art
-			this.facing += 0.01;
 			this._draw(e.ctx, e.pos);
 		})
-		//.color('rgb(255,0,0)')
-		.attr({x: 20, y: 20, w: 20, h: 20, facing:0 })
-		.multiway(4, { W: -90, S: 90 });
+		.bind('EnterFrame', function () {
+			this._react();
+		})
+		.bind('KeyUp', function(e) {
+			this._keyup(e);
+		})
+		.attr({x: 20, y: 20, w: 20, h: 20 });
 	Crafty.e("Diamondback, 2D, Canvas, Color, Multiway")
 		.color('rgb(0,255,0)')
 		.attr({ x: 580, y: 100, w: 10, h: 100 })
