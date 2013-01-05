@@ -1,12 +1,22 @@
-<!--Load up them libraries-->
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.js"></script>
-<script type="text/javascript" src="http://cdn.craftycomponents.com/crafty-release.js"></script>
-<%= javascript_include_tag "application" %>
-<% content_for :javascript_includes do %>
-	
-<% end %> 
-
-We have liftoff.
-<script type="text/javascript">
-RunGame();
-</script>
+<h2>Open Games</h2>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Game Name</th>
+      <th>Time Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @games.each do |game| %>
+    <tr>
+      <td><%= link_to game.name, game %></td>
+      <td><%= game.created_at %></td>
+    </tr>
+    <% end %>
+    <% if @games.empty? %>
+      <tr><td colspan="2">No games are currently open.</td></tr>
+    <% end %>
+  </tbody>
+</table>
+<%= link_to 'Create Game', new_game_path, :class => "btn btn-inverse" %>
+<%= link_to 'Delete All Games', {:action => 'delete_all_games'}, :class => "btn btn-danger" %>

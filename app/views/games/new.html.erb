@@ -1,0 +1,12 @@
+<h2>New Game</h2>
+<hr />
+<% @game.errors.full_messages.each do |msg| %>
+  <p class="error_msg"><%= msg %></p>
+<% end %>
+<%= form_for @game, :url => {:action => "create"} do |f| %>
+  <%= f.label :name %>
+  <%= f.text_field :name %>
+  <hr />
+  <%= f.submit "Create", :class => "btn btn-primary" %>
+  <%= link_to "Cancel", games_path, :class => "btn" %>
+<% end %>
