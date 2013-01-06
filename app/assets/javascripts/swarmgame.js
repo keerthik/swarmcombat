@@ -8,6 +8,8 @@ function RunGame() {
 
 //Paddles
 function CreateDrones() {
+
+	// Define the drone component
 	
 	Crafty.c("Drone", {
 		ready:true,
@@ -38,10 +40,10 @@ function CreateDrones() {
 			drawTriangle(ctx, pos, point, this.color);
 			drawHp(ctx, pos, size, this.hp, this.maxhp, this.color);
 		},
-		_triggerKey:{13:1},
+		_triggerKey:{13:0, 34:1},
 		_keyup: function (e) {
-			if (this._triggerKey[e.key]) {
-				this.instructions = $('#greenstruction').val();
+			if (this._triggerKey[e.key] == this.owner) {
+				this.instructions = (this.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
 			}
 		},
 		_react: function () {
@@ -50,11 +52,13 @@ function CreateDrones() {
 			eval(this.instructions);
 		}
 	});
+	// Spawn them drones
 	for (var i = 0; i < 5; i++) {
 		Crafty.e("2D, Canvas, Drone")
 			.attr({x: 20, y: 40*(i+1), w: 20, h: 20, owner: 0});
+		Crafty.e("2D, Canvas, Drone")
+			.attr({x: 580, y: 40*(i+1), w: 20, h: 20, owner: 1, facing: 3.14});
 	}
-	
 }
 //Ball
 function CreateBall() {
