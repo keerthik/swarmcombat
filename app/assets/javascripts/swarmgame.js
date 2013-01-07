@@ -32,11 +32,16 @@ function CreateDrones() {
 			});
 		},
 		_draw: function (ctx, po){
-			var pos = {	x: po._x, y: po._y};
-			var size = po._w;
+			if (this.x < 0 || this.x > 600 || this.y < 0) return;
+			
+			// Center of the rendering square is actual position of the unit
+			var pos = new Crafty.math.Vector2D( po._x + po._w/2, po._y + po._h/2);
+			// Size of the unit is 70% of the rendering square to account for turn overflow
+			var size = .7*po._w;
+			// Color of the drone (used for render and hp bar) is based on the owner
+			this.color = (this.owner > 0)?'rgb(255,0,0)':'rgb(0,255,0)';
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.facing, size);
-			this.color = (this.owner > 0)?'rgb(255,0,0)':'rgb(0,255,0)';
 			drawTriangle(ctx, pos, point, this.color);
 			drawHp(ctx, pos, size, this.hp, this.maxhp, this.color);
 		},
@@ -53,11 +58,11 @@ function CreateDrones() {
 		}
 	});
 	// Spawn them drones
-	for (var i = 0; i < 5; i++) {
-		Crafty.e("2D, Canvas, Drone")
-			.attr({x: 20, y: 40*(i+1), w: 20, h: 20, owner: 0});
-		Crafty.e("2D, Canvas, Drone")
-			.attr({x: 580, y: 40*(i+1), w: 20, h: 20, owner: 1, facing: 3.14});
+	for (var i = 0; i < 3; i++) {
+		Crafty.e("Trident, 2D, Canvas, Drone")
+			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0});
+		Crafty.e("Diamondback, 2D, Canvas, Drone")
+			.attr({x: 520, y: 60*(i+1), w: 30, h: 30, owner: 1, facing: 3.14});
 	}
 }
 //Ball
