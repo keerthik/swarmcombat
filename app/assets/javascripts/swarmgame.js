@@ -11,7 +11,7 @@ function CreateDrones() {
 
 	// Define the drone component
 	
-	Crafty.c("Drone", {
+	Crafty.c("Drone_draw", {
 		ready:true,
 		facing:0, 
 		hp:0,
@@ -32,8 +32,6 @@ function CreateDrones() {
 			});
 		},
 		_draw: function (ctx, po){
-			if (this.x < 0 || this.x > 600 || this.y < 0) return;
-			
 			// Center of the rendering square is actual position of the unit
 			var pos = new Crafty.math.Vector2D( po._x + po._w/2, po._y + po._h/2);
 			// Size of the unit is 70% of the rendering square to account for turn overflow
@@ -43,8 +41,13 @@ function CreateDrones() {
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.facing, size);
 			drawTriangle(ctx, pos, point, this.color);
+			// Health bar
 			drawHp(ctx, pos, size, this.hp, this.maxhp, this.color);
+			// TODO: Attack animation
+			// TODO: Hit animation
+			// TODO: Death animation
 		},
+		// Hotkeys for deploying. Right now, different hotkey to deploy to different team
 		_triggerKey:{13:0, 34:1},
 		_keyup: function (e) {
 			if (this._triggerKey[e.key] == this.owner) {
@@ -55,16 +58,48 @@ function CreateDrones() {
 			// Apparently this is necessary to make the draw function work
 			this.x += 0;
 			eval(this.instructions);
-		}
+		},
+		// Public operations for game logic!
+		die: function () {
+			// TODO: Explode graphics, stats, data management, UI updates, etc
+			console.log("I died!");
+		},
+		attackdmg: 7,
+		attackcdmax: 1,
+		attackcd: 0,
+		attack: function (target) {
+			if (attackcd <= 0) {
+				// TODO: Attack trigger
+				target.takeDamage(attackdmg);
+				attackcd 
+			}
+		},
+		takeDamage: function(damage) {
+			// No negative damage
+			damage = (damage<0)?-damage:damage;
+			this.hp = Math.max(0, this.hp-damage);
+			if (this.hp == 0) {
+				this.die();
+				return false;
+			}
+		},
 	});
+	
+	Crafty.e("Thing") 
+		.attr({facing:0, 
+			hp:0,
+			maxhp:100,
+			instructions:"this.facing += 0.05;"});
 	// Spawn them drones
 	for (var i = 0; i < 3; i++) {
-		Crafty.e("Trident, 2D, Canvas, Drone")
+		Crafty.e("Trident, 2D, Canvas, Drone_draw")
 			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0});
-		Crafty.e("Diamondback, 2D, Canvas, Drone")
+		Crafty.e("Diamondback, 2D, Canvas, Drone_draw")
 			.attr({x: 520, y: 60*(i+1), w: 30, h: 30, owner: 1, facing: 3.14});
 	}
+	console.log(Crafty(1));
 }
+
 //Ball
 function CreateBall() {
 	Crafty.e("2D, Canvas")
