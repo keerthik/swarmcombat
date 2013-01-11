@@ -30,9 +30,10 @@ function drawHp(ctx, pos, size, hp, hpmax, color) {
 	ctx.fill();
 }
 
-function drawBeam(ctx, pos, targetPos) {
+function drawBeam(ctx, pos, targetPos, color) {
 	ctx.lineWidth = 3;
 	ctx.beginPath();
+	ctx.strokeStyle = color;
 	ctx.moveTo(pos.x, pos.y);
 	ctx.lineTo(targetPos.x, targetPos.y);
 	ctx.stroke();

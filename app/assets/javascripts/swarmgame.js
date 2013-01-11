@@ -18,8 +18,14 @@ function CreateDrones() {
 	Crafty.c("DroneDraw", {
 		ready:true,
 		color:'rgb(0,255,0)',
+		deathTimer:1,
+		dt: 0,
+		time: new Date().getTime(),
 		init:function (){
 			this.bind('EnterFrame', function (e) {
+				this.dt = 0.001*(new Date().getTime() - this.time);
+				this.time = new Date().getTime();
+
 				this.x += 0;
 				this.x = this.data.x;
 				this.y = this.data.y;
@@ -30,8 +36,6 @@ function CreateDrones() {
 			});
 		},
 		_draw: function (ctx, po){
-			//console.log(this.data);
-			var frame = Crafty.timer.frame;
 			// Center of the rendering square is actual position of the unit
 			var pos = new Crafty.math.Vector2D( po._x + po._w/2, po._y + po._h/2);
 			// Size of the unit is 70% of the rendering square to account for turn overflow
@@ -40,16 +44,30 @@ function CreateDrones() {
 			this.color = (this.data.owner > 0)?'rgb(255,0,0)':'rgb(0,255,0)';
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.data.facing, size);
-			drawTriangle(ctx, pos, point, this.color);
-			// Health bar
-			drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
-			// TODO: Attack animation
-			if (this.data.attacking) {
-				//console.log("Attacking");
-				drawBeam(ctx, pos, this.data.targetPos);
+			if (this.data.alive) {
+				drawTriangle(ctx, pos, point, this.color);
+				// Health bar
+				drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
+				// TODO: Moving animation
+				if (this.data.moving) {
+				
+				}
+				// TODO: Attack animation
+				if (this.data.attacking) {
+					//console.log("Attacking");
+					drawBeam(ctx, pos, this.data.targetPos, this.color);
+				}
+				// TODO: Hit animation
+				if (this.data.takingdamage) {
+				
+				}
+			} else {
+				// TODO: Death animation
+				if (this.deathTimer > 0) {
+					// Death animation stage
+					this.deathTimer -= this.dt;
+				}
 			}
-			// TODO: Hit animation
-			// TODO: Death animation
 		},
 	});
 	
@@ -98,11 +116,11 @@ function CreateDrones() {
 		init:function (){
 			this.bind('EnterFrame', function (e) {
 				this.dt = 0.001*(new Date().getTime() - this.time);
+				this.time = new Date().getTime();
 				this._react();
 				if (servermode && !clientmode) {
 				// TODO: Push update
 				}
-				this.time = new Date().getTime();
 			});
 			this.bind('KeyUp', function(e) {
 				this._keyup(e);
