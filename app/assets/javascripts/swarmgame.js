@@ -44,6 +44,10 @@ function CreateDrones() {
 			// Health bar
 			drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
 			// TODO: Attack animation
+			if (this.data.attacking) {
+				//console.log("Attacking");
+				drawBeam(ctx, pos, this.data.targetPos);
+			}
 			// TODO: Hit animation
 			// TODO: Death animation
 		},
@@ -62,13 +66,20 @@ function CreateDrones() {
 				}
 			});
 		},
+		// Flags for animation/data
+		alive: true,
+		attacking: false,
+		takingdamage: false,
+		moving: false,
+		targetPos: {x:0, y:0},
+		// Game state data
 		instructions:"this.data.facing += 0.05;",
 		facing: 0,
 		hp: 0,
 		maxhp: 100,
 		attackdmg: 7,
+		attackrange: 2000,
 		attackcdmax: 1,
-		attackcd: 0,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -76,31 +87,52 @@ function CreateDrones() {
 		contains all the game logic. It only contains a reference to the DroneData
 		entity that is mirrored on clients as well as server, and none of the actual
 		data.
+		Convention here: 
+			_methodName -> Basic game system method - not even hackable
+			methodName	-> Game operation, only available for hacking
+			MethodName	-> Exposed operation, available for instruction set
 	*/
 	Crafty.c("DroneOps", {
+		dt: 0,
+		time: new Date().getTime(),
 		init:function (){
 			this.bind('EnterFrame', function (e) {
+				this.dt = 0.001*(new Date().getTime() - this.time);
 				this._react();
 				if (servermode && !clientmode) {
 				// TODO: Push update
 				}
+				this.time = new Date().getTime();
 			});
 			this.bind('KeyUp', function(e) {
 				this._keyup(e);
 			});
 		},
+		attackcd: 0,
+		NearestEnemy: function () {
+			return Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[0]);
+		},
 		attack: function (target) {
-			if (this.data.attackcd <= 0) {
+			if (!target.data.alive || 
+				new Crafty.math.Vector2D(this.data.x, this.data.y).distance(new Crafty.math.Vector2D(target.data.x, target.data.y))>this.data.attackrange)
+				{
+					this.data.attacking = false;
+					return false;
+				}
+			this.attackcd -= this.dt;
+			if (this.attackcd <= 0) {
 				// TODO: Attack trigger
+				this.data.attacking = true;
+				this.data.targetPos = {x:target.data.x, y:target.data.y};
 				target.takeDamage(this.data.attackdmg);
-				//this.data.attackcd -= 
+				this.attackcd = this.data.attackcdmax;
 			}
 		},
 		takeDamage: function(damage) {
 			// No negative damage
 			damage = (damage<0)?-damage:damage;
 			this.data.hp = Math.max(0, this.data.hp-damage);
-			if (this.hp == 0) {
+			if (this.data.hp <= 0) {
 				this.die();
 				return false;
 			}
@@ -108,6 +140,7 @@ function CreateDrones() {
 		// Public operations for game logic!
 		die: function () {
 			// TODO: Explode graphics, stats, data management, UI updates, etc
+			this.data.alive = false;
 			console.log("I died!");
 		},
 		_react: function () {
@@ -129,21 +162,26 @@ function CreateDrones() {
 		// Container for the data that is expected to be piped away or piped in
 		thisData = Crafty.e("Tridata, DroneData")
 			.attr({x: 50, y: 60*(i+1), owner: 0});
+		thatData = Crafty.e("Diadata, DroneData")
+			.attr({x: 520, y: 60*(i+1), owner: 1});
 
 		if (servermode) {
 			thisOps = Crafty.e("Trisim, DroneOps")
 				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0, data: thisData});
+			thatOps = Crafty.e("Diasim, DroneOps")
+				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
 		
 		if (clientmode) {
 			Crafty.e("Trident, 2D, Canvas, DroneDraw")
 				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0, data: thisData});
+			Crafty.e("Diamond, 2D, Canvas, DroneDraw")
+				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
-//		Crafty.e("Diamondback, 2D, Canvas, DroneDraw")
-//			.attr({x: 520, y: 60*(i+1), w: 30, h: 30, owner: 1, facing: 3.14});
 	}
 	if (servermode) {
-		console.log(Crafty("Tridata"));
+		var redops = Crafty("Diasim");
+		console.log(redops);
 	}
 }
 

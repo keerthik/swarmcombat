@@ -29,3 +29,11 @@ function drawHp(ctx, pos, size, hp, hpmax, color) {
 	ctx.fillStyle = 'rgb(0,255,0)';
 	ctx.fill();
 }
+
+function drawBeam(ctx, pos, targetPos) {
+	ctx.lineWidth = 3;
+	ctx.beginPath();
+	ctx.moveTo(pos.x, pos.y);
+	ctx.lineTo(targetPos.x, targetPos.y);
+	ctx.stroke();
+}
