@@ -94,10 +94,13 @@ function CreateDrones() {
 		instructions:"this.data.facing += 0.05;",
 		facing: 0,
 		hp: 0,
+		// unit stats
 		maxhp: 100,
-		attackdmg: 7,
-		attackrange: 2000,
+		attackdmg: 3.5,
+		attackrange: 200,
 		attackcdmax: 1,
+		movespeed: 40,
+		turnspeed: 13,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -115,8 +118,7 @@ function CreateDrones() {
 		time: new Date().getTime(),
 		init:function (){
 			this.bind('EnterFrame', function (e) {
-				this.dt = 0.001*(new Date().getTime() - this.time);
-				this.time = new Date().getTime();
+				this._always();
 				this._react();
 				if (servermode && !clientmode) {
 				// TODO: Push update
@@ -130,21 +132,44 @@ function CreateDrones() {
 		NearestEnemy: function () {
 			return Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[0]);
 		},
+		lookAt: function (targetPos) {
+			var requiredFacing = Math.atan2(targetPos.y - this.data.y, targetPos.x-this.data.x) - this.data.facing;
+			this.data.facing += (requiredFacing<0?-1:1)*Math.min( this.data.turnspeed*this.dt, Math.abs(requiredFacing));
+			return (0 == requiredFacing);
+		},
+		moveFd: function () {
+			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*this.dt;
+			this.data.y += Math.sin(this.data.facing)*this.data.movespeed*this.dt;
+		},
 		attack: function (target) {
-			if (!target.data.alive || 
-				new Crafty.math.Vector2D(this.data.x, this.data.y).distance(new Crafty.math.Vector2D(target.data.x, target.data.y))>this.data.attackrange)
-				{
-					this.data.attacking = false;
-					return false;
-				}
-			this.attackcd -= this.dt;
+			if (!target.data.alive) {
+				this.data.attacking = false;
+				return false;
+			}
+			this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
+			
+			// Turn to face target
+			if (!this.lookAt(this.data.targetPos)) {
+				this.data.attacking = false;
+				return false;
+			}
+			
+			// Get in range of target
+			if (new Crafty.math.Vector2D(this.data.x, this.data.y).distance(new Crafty.math.Vector2D(target.data.x, target.data.y))>this.data.attackrange) {
+				this.moveFd();
+				this.data.attacking = false;
+				return false;
+			}
+			
+			// Attacking the target
 			if (this.attackcd <= 0) {
+				console.log("Attacking");
 				// TODO: Attack trigger
 				this.data.attacking = true;
-				this.data.targetPos = {x:target.data.x, y:target.data.y};
 				target.takeDamage(this.data.attackdmg);
 				this.attackcd = this.data.attackcdmax;
 			}
+			return true;
 		},
 		takeDamage: function(damage) {
 			// No negative damage
@@ -161,9 +186,16 @@ function CreateDrones() {
 			this.data.alive = false;
 			console.log("I died!");
 		},
-		_react: function () {
+		_always: function () {
+			// Need to get us some deltatime
+			this.dt = 0.001*(new Date().getTime() - this.time);
+			this.time = new Date().getTime();
 			// Apparently this is necessary to make the draw function work
 			this.x += 0;
+			if (this.attackcd > 0) this.attackcd -= this.dt;
+		
+		},
+		_react: function () {
 			eval(this.data.instructions);
 		},
 		// Hotkeys for deploying. Right now, different hotkey to deploy to different team
