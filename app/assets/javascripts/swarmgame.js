@@ -9,6 +9,7 @@ function RunGame() {
 // Test clients have servermode true
 var servermode = true;
 var clientmode = true;
+var timer;
 
 // Drones and Components
 function CreateDrones() {
@@ -19,13 +20,8 @@ function CreateDrones() {
 		ready:true,
 		color:'rgb(0,255,0)',
 		deathTimer:1,
-		dt: 0,
-		time: new Date().getTime(),
 		init:function (){
 			this.bind('EnterFrame', function (e) {
-				this.dt = 0.001*(new Date().getTime() - this.time);
-				this.time = new Date().getTime();
-
 				this.x += 0;
 				this.x = this.data.x;
 				this.y = this.data.y;
@@ -65,7 +61,7 @@ function CreateDrones() {
 				// TODO: Death animation
 				if (this.deathTimer > 0) {
 					// Death animation stage
-					this.deathTimer -= this.dt;
+					this.deathTimer -= timer.dt;
 				}
 			}
 		},
@@ -100,7 +96,7 @@ function CreateDrones() {
 		attackrange: 200,
 		attackcdmax: 1,
 		movespeed: 40,
-		turnspeed: 13,
+		turnspeed: 9,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -114,8 +110,6 @@ function CreateDrones() {
 			MethodName	-> Exposed operation, available for instruction set
 	*/
 	Crafty.c("DroneOps", {
-		dt: 0,
-		time: new Date().getTime(),
 		init:function (){
 			this.bind('EnterFrame', function (e) {
 				this._always();
@@ -130,42 +124,45 @@ function CreateDrones() {
 		},
 		attackcd: 0,
 		NearestEnemy: function () {
-			return Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[0]);
+			var i = 0;
+			var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+			while (i < 3 && !enemy.data.alive) {
+				i++;
+				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+			}
+			return (i<3)?enemy:false;
 		},
 		lookAt: function (targetPos) {
-			var requiredFacing = Math.atan2(targetPos.y - this.data.y, targetPos.x-this.data.x) - this.data.facing;
-			this.data.facing += (requiredFacing<0?-1:1)*Math.min( this.data.turnspeed*this.dt, Math.abs(requiredFacing));
-			return (0 == requiredFacing);
+			var requiredFacing = Math.atan2(targetPos.y - this.data.y, targetPos.x-this.data.x);
+			if (requiredFacing < 0) requiredFacing = 2*Math.PI + requiredFacing;
+			requiredFacing -= this.data.facing;
+			this.data.facing += (requiredFacing<0?-1:1)*Math.min( this.data.turnspeed*timer.dt, Math.abs(requiredFacing));
+			return (requiredFacing == 0);
 		},
 		moveFd: function () {
-			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*this.dt;
-			this.data.y += Math.sin(this.data.facing)*this.data.movespeed*this.dt;
+			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*timer.dt;
+			this.data.y += Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
 		},
 		attack: function (target) {
-			if (!target.data.alive) {
-				this.data.attacking = false;
+			this.data.attacking = false;
+			if (!target || !target.data.alive) {
 				return false;
 			}
 			this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
 			
 			// Turn to face target
-			if (!this.lookAt(this.data.targetPos)) {
-				this.data.attacking = false;
-				return false;
-			}
+			this.lookAt(this.data.targetPos);
 			
 			// Get in range of target
 			if (new Crafty.math.Vector2D(this.data.x, this.data.y).distance(new Crafty.math.Vector2D(target.data.x, target.data.y))>this.data.attackrange) {
 				this.moveFd();
-				this.data.attacking = false;
 				return false;
 			}
-			
+			this.data.attacking = true;
 			// Attacking the target
 			if (this.attackcd <= 0) {
 				console.log("Attacking");
 				// TODO: Attack trigger
-				this.data.attacking = true;
 				target.takeDamage(this.data.attackdmg);
 				this.attackcd = this.data.attackcdmax;
 			}
@@ -188,12 +185,8 @@ function CreateDrones() {
 		},
 		_always: function () {
 			// Need to get us some deltatime
-			this.dt = 0.001*(new Date().getTime() - this.time);
-			this.time = new Date().getTime();
-			// Apparently this is necessary to make the draw function work
-			this.x += 0;
-			if (this.attackcd > 0) this.attackcd -= this.dt;
-		
+			if (this.attackcd > 0) this.attackcd -= timer.dt;
+			this.data.facing %= (2*Math.PI);
 		},
 		_react: function () {
 			eval(this.data.instructions);
@@ -207,18 +200,26 @@ function CreateDrones() {
 		},
 	});
 	
+	// Game Timer
+	timer = Crafty.e("timer, 2D, Canvas")
+		.attr({dt:0, time:new Date().getTime()})
+		.bind('EnterFrame', function () {
+			this.dt = 0.001*(new Date().getTime() - this.time);
+			this.time = new Date().getTime();
+		});
+
 	// Spawn them drones
 	for (var i = 0; i < 3; i++) {
 		// Container for the data that is expected to be piped away or piped in
-		thisData = Crafty.e("Tridata, DroneData")
+		var thisData = Crafty.e("Tridata, DroneData")
 			.attr({x: 50, y: 60*(i+1), owner: 0});
-		thatData = Crafty.e("Diadata, DroneData")
+		var thatData = Crafty.e("Diadata, DroneData")
 			.attr({x: 520, y: 60*(i+1), owner: 1});
 
 		if (servermode) {
-			thisOps = Crafty.e("Trisim, DroneOps")
+			var thisOps = Crafty.e("Trisim, DroneOps")
 				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0, data: thisData});
-			thatOps = Crafty.e("Diasim, DroneOps")
+			var thatOps = Crafty.e("Diasim, DroneOps")
 				.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
 		
