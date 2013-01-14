@@ -12,9 +12,12 @@
 <body>
 	We have liftoff.
 	<script type="text/javascript">
-	RunGame();
+		RunGame();
 	</script>
-	Green: <input type="text" id="greenstruction" value="this.attack(this.NearestEnemy());"> [ Hit Enter to assign to Green Drones ] <br>
-	Red: <input type="text" id="redstruction" value="this.data.facing -= 0.05;"> [ Hit PgDn to assign to Red Drones ]
+	<div id="game_ui">
+		<script type="text/javascript">
+			CreateGUI();
+		</script>
+	</div>
 </body>
 </html>

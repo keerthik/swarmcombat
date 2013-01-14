@@ -2,13 +2,33 @@ function RunGame() {
 	Crafty.init(600, 300);
 	Crafty.background('rgb(0,0,0)');
 	CreateDrones();
+	//CreateGUI();
 	//CreateBall();
 	//CreateScoreBoards();
+}
+
+
+function CreateGUI() {
+	var defaultgreen = "this.attack(this.NearestEnemy());";
+	var defaultred = "this.attack(this.NearestEnemy());";
+	$("#game_ui")
+		.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
+	$("#game_ui")
+		.append('Red: <input type="text" id="redstruction" value="'+defaultred+'"><br>');
+	$("#game_ui")
+		.append('<input type="button" id="ready" value="Ready!" />')
+	$("#ready")
+		.click(function(){
+			executing = true;
+		});
+	console.log("Making UI");
+
 }
 
 // Test clients have servermode true
 var servermode = true;
 var clientmode = true;
+var executing = false;
 var timer;
 
 // Drones and Components
@@ -87,7 +107,7 @@ function CreateDrones() {
 		moving: false,
 		targetPos: {x:0, y:0},
 		// Game state data
-		instructions:"this.data.facing += 0.05;",
+		instructions:"this.attack(this.NearestEnemy());",
 		facing: 0,
 		hp: 0,
 		// unit stats
@@ -136,6 +156,7 @@ function CreateDrones() {
 			var requiredFacing = Math.atan2(targetPos.y - this.data.y, targetPos.x-this.data.x);
 			if (requiredFacing < 0) requiredFacing = 2*Math.PI + requiredFacing;
 			requiredFacing -= this.data.facing;
+			if (requiredFacing > Math.PI) requiredFacing = 2*Math.PI - requiredFacing;
 			this.data.facing += (requiredFacing<0?-1:1)*Math.min( this.data.turnspeed*timer.dt, Math.abs(requiredFacing));
 			return (requiredFacing == 0);
 		},
@@ -185,10 +206,12 @@ function CreateDrones() {
 		},
 		_always: function () {
 			// Need to get us some deltatime
+			if (!executing || !this.data.alive) return;
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
 			this.data.facing %= (2*Math.PI);
 		},
 		_react: function () {
+			if (!executing || !this.data.alive) return;
 			eval(this.data.instructions);
 		},
 		// Hotkeys for deploying. Right now, different hotkey to deploy to different team
@@ -235,7 +258,8 @@ function CreateDrones() {
 		console.log(redops);
 	}
 }
-
+function logic_unit() {
+}
 //Ball
 function CreateBall() {
 	Crafty.e("2D, Canvas")
