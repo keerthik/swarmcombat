@@ -111,12 +111,12 @@ function CreateDrones() {
 		facing: 0,
 		hp: 0,
 		// unit stats
-		maxhp: 100,
+		maxhp: 20,
 		attackdmg: 3.5,
 		attackrange: 200,
 		attackcdmax: 1,
 		movespeed: 40,
-		turnspeed: 9,
+		turnspeed: 6,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -153,16 +153,24 @@ function CreateDrones() {
 			return (i<3)?enemy:false;
 		},
 		lookAt: function (targetPos) {
-			var requiredFacing = Math.atan2(targetPos.y - this.data.y, targetPos.x-this.data.x);
-			if (requiredFacing < 0) requiredFacing = 2*Math.PI + requiredFacing;
-			requiredFacing -= this.data.facing;
-			if (requiredFacing > Math.PI) requiredFacing = 2*Math.PI - requiredFacing;
-			this.data.facing += (requiredFacing<0?-1:1)*Math.min( this.data.turnspeed*timer.dt, Math.abs(requiredFacing));
-			return (requiredFacing == 0);
+			var requiredFacing = Math.atan2(this.data.y - targetPos.y, targetPos.x - this.data.x);
+			requiredFacing = requiredFacing.mod(2*Math.PI);
+			var requiredturn = requiredFacing - this.data.facing;
+			// Looking at target
+			if (Math.abs(requiredturn) < 0.0001) return true;
+			var direction = (requiredturn<0?-1:1);
+			// Optimal (shortest) turning around 0
+			if (Math.abs(requiredturn) > Math.PI) {
+				requiredturn = direction*2*Math.PI - requiredturn;
+				direction*=-1;
+			}
+			// Turn as fast as possible/needed
+			this.data.facing += direction*Math.min( this.data.turnspeed*timer.dt, Math.abs(requiredturn));
+			return false;
 		},
 		moveFd: function () {
 			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*timer.dt;
-			this.data.y += Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
+			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
 		},
 		attack: function (target) {
 			this.data.attacking = false;
@@ -171,18 +179,17 @@ function CreateDrones() {
 			}
 			this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
 			
-			// Turn to face target
-			this.lookAt(this.data.targetPos);
-			
 			// Get in range of target
-			if (new Crafty.math.Vector2D(this.data.x, this.data.y).distance(new Crafty.math.Vector2D(target.data.x, target.data.y))>this.data.attackrange) {
-				this.moveFd();
-				return false;
-			}
-			this.data.attacking = true;
+			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
+								.distance(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange;							
+			if (!this.data.attacking) this.moveFd();
+
+			// Turn to face target
+			this.data.attacking &= this.lookAt(this.data.targetPos);
+			if (!this.data.attacking) return false;
+
 			// Attacking the target
 			if (this.attackcd <= 0) {
-				console.log("Attacking");
 				// TODO: Attack trigger
 				target.takeDamage(this.data.attackdmg);
 				this.attackcd = this.data.attackcdmax;
@@ -202,13 +209,12 @@ function CreateDrones() {
 		die: function () {
 			// TODO: Explode graphics, stats, data management, UI updates, etc
 			this.data.alive = false;
-			console.log("I died!");
 		},
 		_always: function () {
 			// Need to get us some deltatime
 			if (!executing || !this.data.alive) return;
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
-			this.data.facing %= (2*Math.PI);
+			this.data.facing = this.data.facing.mod(2*Math.PI);
 		},
 		_react: function () {
 			if (!executing || !this.data.alive) return;

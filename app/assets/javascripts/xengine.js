@@ -1,7 +1,11 @@
 function drxnVector(angle, scale) {
 	var point = new Crafty.math.Vector2D(	scale*Math.cos(angle),
-											scale*Math.sin(angle));
+											-scale*Math.sin(angle));
 	return point;
+}
+// Motherflipping Javascript has a "buggy" modulo implementation - doesn't use Euclidean division
+Number.prototype.mod = function(n) {
+	return ((this%n)+n)%n;
 }
 
 function drawTriangle(ctx, pos, apex, color) {
