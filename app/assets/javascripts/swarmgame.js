@@ -171,6 +171,7 @@ function CreateDrones() {
 		moveFd: function () {
 			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*timer.dt;
 			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
+      this._reconcileBounds();
 		},
 		attack: function (target) {
 			this.data.attacking = false;
@@ -227,6 +228,11 @@ function CreateDrones() {
 				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
 			}
 		},
+    // Ensure entity stays in bounds
+    _reconcileBounds: function() {
+      this.data.x = Math.max(Math.min(this.data.x,Crafty.viewport.width-this.w),0);
+      this.data.y = Math.max(Math.min(this.data.y,Crafty.viewport.height-this.h),0);
+    },    
 	});
 	
 	// Game Timer
