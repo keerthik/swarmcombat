@@ -1,6 +1,6 @@
 function RunGame() {
 	Crafty.init(600, 300);
-	Crafty.background('rgb(0,0,0)');
+	Crafty.background('rgba(0,0,0,100)');
 	CreateDrones();
 	//CreateGUI();
 	//CreateBall();
@@ -9,8 +9,8 @@ function RunGame() {
 
 
 function CreateGUI() {
-	var defaultgreen = "this.attack(this.NearestEnemy());";
-	var defaultred = "this.attack(this.NearestEnemy());";
+	var defaultgreen = "attack(NearestEnemy());";
+	var defaultred = "attack(NearestEnemy());";
 	$("#game_ui")
 		.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
 	$("#game_ui")
@@ -40,7 +40,10 @@ function CreateDrones() {
 		ready:true,
 		color:'rgb(0,255,0)',
 		deathTimer:1,
+		hitTimerMax:.2,
 		init:function (){
+			this.hitParticles = new ParticleSystem(10, 15);
+			//console.log(this.particles);
 			this.bind('EnterFrame', function (e) {
 				this.x += 0;
 				this.x = this.data.x;
@@ -60,24 +63,28 @@ function CreateDrones() {
 			this.color = (this.data.owner > 0)?'rgb(255,0,0)':'rgb(0,255,0)';
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.data.facing, size);
-			if (this.data.alive) {
+			if (this.data.alive || this.deathTimer > 0) {
 				drawTriangle(ctx, pos, point, this.color);
 				// Health bar
 				drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
 				// TODO: Moving animation
 				if (this.data.moving) {
-				
+
 				}
 				// TODO: Attack animation
 				if (this.data.attacking) {
 					//console.log("Attacking");
-					drawBeam(ctx, pos, this.data.targetPos, this.color);
+					drawBeams(ctx, pos, point, this.data.targetPos, this.color);
 				}
 				// TODO: Hit animation
 				if (this.data.takingdamage) {
-				
+					this.hitParticles.draw(ctx, pos);
+					this.data.hitTimer -= timer.dt;
+					if (this.data.hitTimer <= 0) {
+						this.data.hitTimer = this.hitTimerMax;
+						this.data.takingdamage = false;
+					}
 				}
-			} else {
 				// TODO: Death animation
 				if (this.deathTimer > 0) {
 					// Death animation stage
@@ -107,16 +114,18 @@ function CreateDrones() {
 		moving: false,
 		targetPos: {x:0, y:0},
 		// Game state data
-		instructions:"this.attack(this.NearestEnemy());",
+		instructions:"attack(NearestEnemy());",
 		facing: 0,
 		hp: 0,
 		// unit stats
-		maxhp: 20,
+		maxhp: 50,
 		attackdmg: 3.5,
 		attackrange: 200,
 		attackcdmax: 1,
-		movespeed: 40,
+		movespeed: 55,
 		turnspeed: 6,
+		// Graphics hack
+		hitTimer:.2,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -169,9 +178,10 @@ function CreateDrones() {
 			return false;
 		},
 		moveFd: function () {
+			this.data.moving = true;
 			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*timer.dt;
 			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
-      this._reconcileBounds();
+			this._reconcileBounds();
 		},
 		attack: function (target) {
 			this.data.attacking = false;
@@ -198,13 +208,12 @@ function CreateDrones() {
 			return true;
 		},
 		takeDamage: function(damage) {
-			// No negative damage
+			// For animation purposes
+			this.data.takingdamage = true;
+			this.data.hitTimer = 1;
+			// Stats
 			damage = (damage<0)?-damage:damage;
 			this.data.hp = Math.max(0, this.data.hp-damage);
-			if (this.data.hp <= 0) {
-				this.die();
-				return false;
-			}
 		},
 		// Public operations for game logic!
 		die: function () {
@@ -212,14 +221,21 @@ function CreateDrones() {
 			this.data.alive = false;
 		},
 		_always: function () {
-			// Need to get us some deltatime
 			if (!executing || !this.data.alive) return;
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
 			this.data.facing = this.data.facing.mod(2*Math.PI);
+			this.data.moving = false;
 		},
 		_react: function () {
 			if (!executing || !this.data.alive) return;
-			eval(this.data.instructions);
+			with (this) {
+				eval(this.data.instructions);
+			}
+			// Death happens only at the end of a "frame", which is essentially a "turn"
+			if (this.data.hp <= 0) {
+				this.die();
+				return false;
+			}
 		},
 		// Hotkeys for deploying. Right now, different hotkey to deploy to different team
 		_triggerKey:{13:0, 34:1},
@@ -228,11 +244,11 @@ function CreateDrones() {
 				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
 			}
 		},
-    // Ensure entity stays in bounds
-    _reconcileBounds: function() {
-      this.data.x = Math.max(Math.min(this.data.x,Crafty.viewport.width-this.w),0);
-      this.data.y = Math.max(Math.min(this.data.y,Crafty.viewport.height-this.h),0);
-    },    
+		// Ensure entity stays in bounds
+		_reconcileBounds: function() {
+			this.data.x = Math.max(Math.min(this.data.x,Crafty.viewport.width-this.w),0);
+			this.data.y = Math.max(Math.min(this.data.y,Crafty.viewport.height-this.h),0);
+		},    
 	});
 	
 	// Game Timer
@@ -244,6 +260,8 @@ function CreateDrones() {
 		});
 
 	// Spawn them drones
+	if (servermode) console.log("Server mode detected...Creating simulators");
+	if (clientmode) console.log("Client mode detected...Creating renderers");
 	for (var i = 0; i < 3; i++) {
 		// Container for the data that is expected to be piped away or piped in
 		var thisData = Crafty.e("Tridata, DroneData")
@@ -267,7 +285,6 @@ function CreateDrones() {
 	}
 	if (servermode) {
 		var redops = Crafty("Diasim");
-		console.log(redops);
 	}
 }
 function logic_unit() {
