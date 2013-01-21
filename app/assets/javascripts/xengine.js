@@ -52,9 +52,9 @@ function drawBeams(ctx, pos, apex, targetPos, color) {
 	ctx.stroke();
 }
 
+// Used for particle system
 function particle()
 {
-	//Random position on the canvas
 	this.x = 0;
 	this.y = 0;
 	
@@ -84,7 +84,7 @@ function ParticleSystem(count, bounds) {
 		}
 	};
 	this.init();
-	this.draw = function(ctx, pos) {
+	this.draw = function(ctx, pos, once) {
 		ctx.globalCompositeOperation = "source-over";
 		ctx.globalCompositeOperation = "lighter";
 		
@@ -93,8 +93,22 @@ function ParticleSystem(count, bounds) {
 			var p = this.particles[t];
 			
 			ctx.beginPath();
+
+			//Lets use the velocity now
+			p.x += p.vx;
+			p.y += p.vy;
+
+			//Reset particle on leaving -- or stop drawing it
+			if(p.x < -bounds || p.x > bounds || p.y < -bounds || p.y > bounds) {
+				if (once) continue;
+				p.x = 0; 
+				p.y = 0;
+				p.vx = Math.random()*20-10;
+				p.vy = Math.random()*20-10;
+			}
 			
 			//Time for some colors
+			
 			var gradient = ctx.createRadialGradient(p.x+pos.x, p.y+pos.y, 0, p.x+pos.x, p.y+pos.y, p.radius);
 			gradient.addColorStop(0, "white");
 			gradient.addColorStop(0.4, "white");
@@ -102,18 +116,9 @@ function ParticleSystem(count, bounds) {
 			gradient.addColorStop(1, "black");
 			
 			ctx.fillStyle = gradient;
+			
 			ctx.arc(p.x+pos.x, p.y+pos.y, p.radius, Math.PI*2, false);
 			ctx.fill();
-			//Lets use the velocity now
-			p.x += p.vx;
-			p.y += p.vy;
-			//Reset particle on leaving
-			if(p.x < -bounds || p.x > bounds || p.y < -bounds || p.y > bounds) {
-				p.x = 0; 
-				p.y = 0;
-				p.vx = Math.random()*20-10;
-				p.vy = Math.random()*20-10;
-			}
 		}	
 	};
 }

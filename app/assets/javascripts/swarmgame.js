@@ -39,10 +39,10 @@ function CreateDrones() {
 	Crafty.c("DroneDraw", {
 		ready:true,
 		color:'rgb(0,255,0)',
-		deathTimer:1,
+		deathTimer:.2,
 		hitTimerMax:.2,
 		init:function (){
-			this.hitParticles = new ParticleSystem(10, 15);
+			this.deathParticles = new ParticleSystem(20, 30);
 			//console.log(this.particles);
 			this.bind('EnterFrame', function (e) {
 				this.x += 0;
@@ -63,7 +63,7 @@ function CreateDrones() {
 			this.color = (this.data.owner > 0)?'rgb(255,0,0)':'rgb(0,255,0)';
 			// Draw triangle facing angle from x-axis, of dimension size
 			var point = drxnVector(this.data.facing, size);
-			if (this.data.alive || this.deathTimer > 0) {
+			if (this.data.alive) {
 				drawTriangle(ctx, pos, point, this.color);
 				// Health bar
 				drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
@@ -78,19 +78,18 @@ function CreateDrones() {
 				}
 				// TODO: Hit animation
 				if (this.data.takingdamage) {
-					this.hitParticles.draw(ctx, pos);
 					this.data.hitTimer -= timer.dt;
 					if (this.data.hitTimer <= 0) {
 						this.data.hitTimer = this.hitTimerMax;
 						this.data.takingdamage = false;
 					}
 				}
-				// TODO: Death animation
-				if (this.deathTimer > 0) {
-					// Death animation stage
-					this.deathTimer -= timer.dt;
-				}
+			} else if (this.deathTimer > 0) {
+				this.deathParticles.draw(ctx, pos, true);
+				// Death animation stage
+				this.deathTimer -= timer.dt;
 			}
+			
 		},
 	});
 	
@@ -217,7 +216,7 @@ function CreateDrones() {
 		},
 		// Public operations for game logic!
 		die: function () {
-			// TODO: Explode graphics, stats, data management, UI updates, etc
+			// TODO: stats, data management, UI updates, etc
 			this.data.alive = false;
 		},
 		_always: function () {
@@ -228,6 +227,7 @@ function CreateDrones() {
 		},
 		_react: function () {
 			if (!executing || !this.data.alive) return;
+			// 'with' allows us to drop the 'this.' in the code here
 			with (this) {
 				eval(this.data.instructions);
 			}
