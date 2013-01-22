@@ -59,8 +59,8 @@ function particle()
 	this.y = 0;
 	
 	//Lets add random velocity to each particle
-	this.vx = Math.random()*20-10;
-	this.vy = Math.random()*20-10;
+	this.vx = Math.random()*10-5;
+	this.vy = Math.random()*10-5;
 	
 	//Random colors
 	var r = Math.random()*255>>0;

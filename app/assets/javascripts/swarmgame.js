@@ -19,6 +19,13 @@ function CreateGUI() {
 		.append('<input type="button" id="ready" value="Ready!" />')
 	$("#ready")
 		.click(function(){
+			Crafty("Trisim").each(function(){
+				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
+			});
+			Crafty("Diasim").each(function(){
+				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
+			});
+
 			executing = true;
 		});
 	console.log("Making UI");
@@ -42,7 +49,7 @@ function CreateDrones() {
 		deathTimer:.2,
 		hitTimerMax:.2,
 		init:function (){
-			this.deathParticles = new ParticleSystem(20, 30);
+			this.deathParticles = new ParticleSystem(20, 50);
 			//console.log(this.particles);
 			this.bind('EnterFrame', function (e) {
 				this.x += 0;
@@ -224,6 +231,7 @@ function CreateDrones() {
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
 			this.data.facing = this.data.facing.mod(2*Math.PI);
 			this.data.moving = false;
+			this.data.attacking = false;
 		},
 		_react: function () {
 			if (!executing || !this.data.alive) return;
