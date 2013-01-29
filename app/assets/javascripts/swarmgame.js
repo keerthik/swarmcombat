@@ -305,7 +305,6 @@ function CreateDrones() {
        position that lookAt turns to and the pixel position of the center of 
        the next node in the path. */
     moveTo: function(target_x, target_y) {
-      console.log(this.data.path);
       var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
       var curr_cell = this.getGridPosition();
       if (this.data.path) {
