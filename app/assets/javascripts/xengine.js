@@ -72,19 +72,74 @@ function particle()
 	this.radius = Math.random()*2+4;
 }
 
-function ParticleSystem(count, bounds) {
-	this.color = 'rgb(255,0,0)'; 
+function sprayParticle()
+{
+
+	this.setDirection = function (facing) {
+		var speed = 7;
+		var vector = drxnVector(facing, speed);
+		//Lets add random velocity to each particle
+		this.vx = vector.x + Math.random()*.4-.2;
+		this.vy = vector.y + Math.random()*.4-.2;
+	};
+
+	this.x = 0;
+	this.y = 0;
+	
+	this.vx = 3 + Math.random()*.4-.2;
+	this.vy = 4 + Math.random()*.4-.2;
+	
+	//Random colors
+	var r = Math.random()*255>>0;
+	var g = Math.random()*255>>0;
+	var b = Math.random()*255>>0;
+	this.color = "rgba("+r+", "+g+", "+b+", 0.5)";
+
+	//Random size
+	this.radius = Math.random()*2+4;	
+}
+
+function ParticleSystem(count, bounds, spray) {
+	if (arguments.length < 3) spray = false;
+	
+	this.color = 'rgb(255,0,0)';
+	this.once = false;
 	
 	this.init = function (){
 		this.particles = [];
 		for(var i = 0; i < count; i++)
 		{
 			//This will add 50 particles to the array with random positions
-			this.particles.push(new particle());
+			if (spray)
+				this.particles.push(new sprayParticle());
+			else
+				this.particles.push(new particle());
+			
 		}
 	};
 	this.init();
-	this.draw = function(ctx, pos, once) {
+	this.setParams = function (color, once, pos, target, facing) {
+		// Set custom color, 0 for randomized
+		if (color != 0 && typeof color != "undefined") {
+			for (var i = 0; i < this.particles.length; i++) {
+				this.particles[i].color = color;
+			}
+		}
+		this.once = once;
+		if(arguments.length < 3) return;
+		for (var i = 0; i < this.particles.length; i++) {
+			var p = this.particles[i];
+			if(Math.abs(p.x) > 5 + Math.abs(target.x-pos.x) || Math.abs(p.y) > 5 + Math.abs(target.y-pos.y)) {
+				p.x = 0;
+				p.y = 0;
+			}
+			if (p.x == 0 && p.y == 0) {
+				p.setDirection(facing);
+			}
+		}
+
+	};
+	this.draw = function(ctx, pos) {
 		ctx.globalCompositeOperation = "source-over";
 		ctx.globalCompositeOperation = "lighter";
 		
@@ -99,16 +154,17 @@ function ParticleSystem(count, bounds) {
 			p.y += p.vy;
 
 			//Reset particle on leaving -- or stop drawing it
-			if(p.x < -bounds || p.x > bounds || p.y < -bounds || p.y > bounds) {
-				if (once) continue;
-				p.x = 0; 
-				p.y = 0;
-				p.vx = Math.random()*20-10;
-				p.vy = Math.random()*20-10;
+			if (!spray) {
+				if(Math.abs(p.x) > bounds || Math.abs(p.y) > bounds) {
+					if (this.once) continue;
+					p.x = 0; 
+					p.y = 0;
+					p.vx = Math.random()*20-10;
+					p.vy = Math.random()*20-10;
+				}
 			}
 			
 			//Time for some colors
-			
 			var gradient = ctx.createRadialGradient(p.x+pos.x, p.y+pos.y, 0, p.x+pos.x, p.y+pos.y, p.radius);
 			gradient.addColorStop(0, "white");
 			gradient.addColorStop(0.4, "white");

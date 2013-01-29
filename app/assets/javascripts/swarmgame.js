@@ -156,6 +156,7 @@ function CreateDrones() {
 		hitTimerMax:.2,
 		init:function (){
 			this.deathParticles = new ParticleSystem(20, 50);
+			this.gunParticles = new ParticleSystem(4, 0, true);
 			//console.log(this.particles);
 			this.bind('EnterFrame', function (e) {
 				this.x += 0;
@@ -187,7 +188,9 @@ function CreateDrones() {
 				// TODO: Attack animation
 				if (this.data.attacking) {
 					//console.log("Attacking");
-					drawBeams(ctx, pos, point, this.data.targetPos, this.color);
+					//drawBeams(ctx, pos, point, this.data.targetPos, this.color);
+					this.gunParticles.setParams(this.color, false, pos, this.data.targetPos, this.data.facing);
+					this.gunParticles.draw(ctx, pos);
 				}
 				// TODO: Hit animation
 				if (this.data.takingdamage) {
@@ -198,7 +201,8 @@ function CreateDrones() {
 					}
 				}
 			} else if (this.deathTimer > 0) {
-				this.deathParticles.draw(ctx, pos, true);
+				this.deathParticles.setParams(0, true);
+				this.deathParticles.draw(ctx, pos);
 				// Death animation stage
 				this.deathTimer -= timer.dt;
 			}
@@ -230,7 +234,7 @@ function CreateDrones() {
 		facing: 0,
 		hp: 0,
 		// unit stats
-		maxhp: 50,
+		maxhp: 20,
 		attackdmg: 3.5,
 		attackrange: 200,
 		attackcdmax: 1,
