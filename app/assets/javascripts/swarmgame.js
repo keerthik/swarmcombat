@@ -7,8 +7,15 @@ function RunGame() {
 	//CreateScoreBoards();
 }
 
+function PrepareExecution() {
+	executing = true;
+}
 
 function CreateGUI() {
+	console.log("Making UI");
+	
+	/* TEST GUI
+	*/
 	var defaultgreen = "attack(NearestEnemy());";
 	var defaultred = "attack(NearestEnemy());";
 	$("#game_ui")
@@ -25,11 +32,11 @@ function CreateGUI() {
 			Crafty("Diasim").each(function(){
 				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
 			});
-
-			executing = true;
+			PrepareExecution();
 		});
-	console.log("Making UI");
-
+	/* Pass one
+	*/
+	
 }
 
 // Test clients have servermode true
