@@ -70,11 +70,11 @@ function PathingGrid(drone_id) {
       for (var iter = 0; iter < drones.length; iter++) {
         if (this.drone_id != drones[iter]) {
           drone = Crafty(drones[iter]);
-          upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x - drone.w/2, 0),
-                                               Math.max(drone.data.y - drone.h/2, 0));
-          lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + 1.5*drone.w,
+          upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x - drone.w/4, 0),
+                                               Math.max(drone.data.y - drone.h/4, 0));
+          lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + 1.25*drone.w,
                                                  Crafty.viewport.width-1), 
-                                                Math.min(drone.data.y + 1.5*drone.h,
+                                                Math.min(drone.data.y + 1.25*drone.h,
                                                  Crafty.viewport.height-1));
           for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
             for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
@@ -239,7 +239,7 @@ function CreateDrones() {
 		attackrange: 200,
 		attackcdmax: 1,
 		movespeed: 55,
-		turnspeed: 6,
+		turnspeed: 12,
 		// Graphics hack
 		hitTimer:.2,
     // Shortest path to current target
@@ -280,7 +280,7 @@ function CreateDrones() {
 			return (i<3)?enemy:false;
 		},
 		lookAt: function (targetPos) {
-			var requiredFacing = Math.atan2(this.data.y - targetPos.y, targetPos.x - this.data.x);
+			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
 			requiredFacing = requiredFacing.mod(2*Math.PI);
 			var requiredturn = requiredFacing - this.data.facing;
 			// Looking at target
@@ -301,27 +301,25 @@ function CreateDrones() {
 			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
 			this._reconcileBounds();
 		},
-    /* Currently broken. There appears to be a discrepancy between the pixel
-       position that lookAt turns to and the pixel position of the center of 
-       the next node in the path. */
     moveTo: function(target_x, target_y) {
       var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
       var curr_cell = this.getGridPosition();
-      if (this.data.path) {
-        if (this.data.path.length == 0) {
-          if (curr_cell == target_grid_pos)
-            return true; // Already at target
-          else {
-            this.data.path = null;
-            return false; // No path to target
-          }
-        }
+      if (curr_cell.i == target_grid_pos.i && curr_cell.j == target_grid_pos.j) {
+      	this.data.path = null;
+      	return true; // Already at target
+      }
+      else if (this.data.path && this.data.path.length == 0)
+      	return false; // No path to target
+      if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
+      						 this.data.path[0].j == target_grid_pos.j)) {
         var next_cell = this.data.path[this.data.path.length-1];
         if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
           this.data.path.pop();
           next_cell = this.data.path[this.data.path.length-1];
-          if (!next_cell)
+          if (!next_cell) {
+          	this.data.path = null;
             return true; // Reached target
+          }
         }
         if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
           this.moveFd();
@@ -332,6 +330,7 @@ function CreateDrones() {
     },
     getPath: function(target_cell) {
       var path_grid = new PathingGrid(this[0]);
+      path_grid.updateState();
       var open_nodes = new BinaryHeap(function(node) {
         return node.f;
       });
