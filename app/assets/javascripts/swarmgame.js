@@ -10,6 +10,10 @@ function RunGame() {
   Grid = new PathingGrid();
 }
 
+function PrepareExecution() {
+	executing = true;
+}
+
 // Object representing the game grid used for A* pathing
 function PathingGrid(drone_id) {
   this.grid_width = 60; // how many cells wide the grid is
@@ -112,9 +116,14 @@ function PathingGrid(drone_id) {
       return neighbors;   
     };
   }
+>>>>>>> 32f751330762560326e988480d48f19c0e53e1e9
 }
 
 function CreateGUI() {
+	console.log("Making UI");
+	
+	/* TEST GUI
+	*/
 	var defaultgreen = "attack(NearestEnemy());";
 	var defaultred = "attack(NearestEnemy());";
 	$("#game_ui")
@@ -131,11 +140,11 @@ function CreateGUI() {
 			Crafty("Diasim").each(function(){
 				this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
 			});
-
-			executing = true;
+			PrepareExecution();
 		});
-	console.log("Making UI");
-
+	/* Pass one
+	*/
+	
 }
 
 // Test clients have servermode true
