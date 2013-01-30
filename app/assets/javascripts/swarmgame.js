@@ -116,7 +116,6 @@ function PathingGrid(drone_id) {
       return neighbors;   
     };
   }
->>>>>>> 32f751330762560326e988480d48f19c0e53e1e9
 }
 
 function CreateGUI() {
