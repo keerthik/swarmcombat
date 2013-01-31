@@ -252,6 +252,7 @@ function CreateDrones() {
 		hitTimer:.2,
     // Shortest path to current target
     path: null,
+    grid: null,
 	});
 	
 	/* 	This component should only really be active on the server, or test clients.
@@ -320,7 +321,14 @@ function CreateDrones() {
       	return false; // No path to target
       if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
       						 this.data.path[0].j == target_grid_pos.j)) {
-        var next_cell = this.data.path[this.data.path.length-1];
+        var temp_next_cell = this.data.path[this.data.path.length-1];
+      	this.data.grid.updateState();
+      	// Recalculate path if there is a collision
+      	var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
+      	if (!next_cell.passable) {
+      		this.data.path = this.getPath(target_grid_pos);
+      		return false;
+      	}
         if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
           this.data.path.pop();
           next_cell = this.data.path[this.data.path.length-1];
@@ -331,14 +339,17 @@ function CreateDrones() {
         }
         if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
           this.moveFd();
+          return false; // Not at target yet
         }
       }
       else
         this.data.path = this.getPath(target_grid_pos);
+      return false;
     },
     getPath: function(target_cell) {
       var path_grid = new PathingGrid(this[0]);
       path_grid.updateState();
+      this.data.grid = path_grid;
       var open_nodes = new BinaryHeap(function(node) {
         return node.f;
       });
@@ -355,12 +366,13 @@ function CreateDrones() {
           var prev = null;
           var res = [];
           while (curr.parent) {
-            if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
+            /*if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
                 (prev.j == curr.j && curr.j == curr.parent.j))) {
               res.push(curr);
             }
             else if (!prev)
-              res.push(curr);
+              res.push(curr); */
+            res.push(curr);
             prev = curr;
             curr = curr.parent;
             prev.parent = null;
