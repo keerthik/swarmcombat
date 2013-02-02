@@ -69,24 +69,24 @@ function PathingGrid(drone_id) {
 
     // Update state of grid by making cells occupied by drones impassable
     this.updateState = function() {
-    	drones = Crafty('DroneOps');
-    	this.resetState();
-    	for (var iter = 0; iter < drones.length; iter++) {
-    		if (this.drone_id != drones[iter]) {
-    			drone = Crafty(drones[iter]);
-    			upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x - drone.w/2, 0),
-    				Math.max(drone.data.y - drone.h/2, 0));
-    			lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + 1.5*drone.w,
-    				Crafty.viewport.width-1), 
-    			Math.min(drone.data.y + 1.5*drone.h,
-    				Crafty.viewport.height-1));
-    			for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
-    				for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
-    					this.nodes[i][j].passable = false;
-    				}
-    			}
-    		}
-    	}
+      drones = Crafty('DroneOps');
+      this.resetState();
+      for (var iter = 0; iter < drones.length; iter++) {
+        if (this.drone_id != drones[iter]) {
+          drone = Crafty(drones[iter]);
+          upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x - drone.w/4, 0),
+                                               Math.max(drone.data.y - drone.h/4, 0));
+          lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + 1.25*drone.w,
+                                                 Crafty.viewport.width-1), 
+                                                Math.min(drone.data.y + 1.25*drone.h,
+                                                 Crafty.viewport.height-1));
+          for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
+            for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
+              this.nodes[i][j].passable = false;
+            }
+          }
+        }
+      }
     };  
 
     // Resets state of grid
@@ -100,21 +100,22 @@ function PathingGrid(drone_id) {
 
     // Find all neighbors of a given cell
     this.findNeighbors = function(curr_cell) {
-    	var i = curr_cell.i;
-    	var j = curr_cell.j;
-    	var neighbors = [];
-
-    	for (var i_iter = -1; i_iter <= 1; i_iter++) {
-    		for (var j_iter = -1; j_iter <= 1; j_iter++) {
-    			if (this.nodes[i+i_iter] && this.nodes[i+i_iter][j+j_iter] &&
-    				(i_iter != 0 || j_iter != 0)) {
-    				neighbors.push(this.nodes[i+i_iter][j+j_iter]);
-	    		}
-	    	}
-	    } 
-
-	    return neighbors;   
-	};
+      var i = curr_cell.i;
+      var j = curr_cell.j;
+      var neighbors = [];
+      
+      for (var i_iter = -1; i_iter <= 1; i_iter++) {
+        for (var j_iter = -1; j_iter <= 1; j_iter++) {
+          if (this.nodes[i+i_iter] && this.nodes[i+i_iter][j+j_iter] &&
+              (i_iter != 0 || j_iter != 0)) {
+            neighbors.push(this.nodes[i+i_iter][j+j_iter]);
+          }
+        }
+      } 
+      
+      return neighbors;   
+    };
+  }
 }
 
 function CreateGUI() {
@@ -246,11 +247,12 @@ function CreateDrones() {
 		attackrange: 200,
 		attackcdmax: 1,
 		movespeed: 55,
-		turnspeed: 6,
+		turnspeed: 12,
 		// Graphics hack
 		hitTimer:.2,
     	// Shortest path to current target
-    	path: null,
+		path: null,
+		grid: null,
 	});
 
 	/* 	This component should only really be active on the server, or test clients.
@@ -287,7 +289,7 @@ function CreateDrones() {
 			return (i<3)?enemy:false;
 		},
 		lookAt: function (targetPos) {
-			var requiredFacing = Math.atan2(this.data.y - targetPos.y, targetPos.x - this.data.x);
+			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
 			requiredFacing = requiredFacing.mod(2*Math.PI);
 			var requiredturn = requiredFacing - this.data.facing;
 			// Looking at target
@@ -308,99 +310,110 @@ function CreateDrones() {
 			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
 			this._reconcileBounds();
 		},
-		/* Currently broken. There appears to be a discrepancy between the pixel
-		position that lookAt turns to and the pixel position of the center of 
-		the next node in the path. */
-		moveTo: function(target_x, target_y) {
-			var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
-			var curr_cell = this.getGridPosition();
-			if (this.data.path) {
-				if (this.data.path.length == 0) {
-					if (curr_cell == target_grid_pos)
-						return true; // Already at target
-					else {
-						this.data.path = null;
-						return false; // No path to target
-					}
-				}
-				var next_cell = this.data.path[this.data.path.length-1];
-				if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
-					this.data.path.pop();
-					next_cell = this.data.path[this.data.path.length-1];
-					if (!next_cell)
-						return true; // Reached target
-				}
-				if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
-					this.moveFd();
-				}
-			} else
-				this.data.path = this.getPath(target_grid_pos);
-		},
-		getPath: function(target_cell) {
-			var path_grid = new PathingGrid(this[0]);
-			var open_nodes = new BinaryHeap(function(node) {
-				return node.f;
-			});
-			var start_cell = this.getGridPosition();
-			open_nodes.push(path_grid.nodes[start_cell.i][start_cell.j]);
-			var end_node = path_grid.nodes[target_cell.i][target_cell.j];
+    moveTo: function(target_x, target_y) {
+      var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
+      var curr_cell = this.getGridPosition();
+      if (curr_cell.i == target_grid_pos.i && curr_cell.j == target_grid_pos.j) {
+      	this.data.path = null;
+      	return true; // Already at target
+      }
+      else if (this.data.path && this.data.path.length == 0)
+      	return false; // No path to target
+      if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
+      						 this.data.path[0].j == target_grid_pos.j)) {
+        var temp_next_cell = this.data.path[this.data.path.length-1];
+      	this.data.grid.updateState();
+      	// Recalculate path if there is a collision
+      	var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
+      	if (!next_cell.passable) {
+      		this.data.path = this.getPath(target_grid_pos);
+      		return false;
+      	}
+        if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
+          this.data.path.pop();
+          next_cell = this.data.path[this.data.path.length-1];
+          if (!next_cell) {
+          	this.data.path = null;
+            return true; // Reached target
+          }
+        }
+        if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
+          this.moveFd();
+          return false; // Not at target yet
+        }
+      }
+      else
+        this.data.path = this.getPath(target_grid_pos);
+      return false;
+    },
+    getPath: function(target_cell) {
+      var path_grid = new PathingGrid(this[0]);
+      path_grid.updateState();
+      this.data.grid = path_grid;
+      var open_nodes = new BinaryHeap(function(node) {
+        return node.f;
+      });
+      var start_cell = this.getGridPosition();
+      open_nodes.push(path_grid.nodes[start_cell.i][start_cell.j]);
+      var end_node = path_grid.nodes[target_cell.i][target_cell.j];
+      
+      while (open_nodes.size() > 0) {
+        curr_node = open_nodes.pop(); // Get node with lowest f cost
 
-			while (open_nodes.size() > 0) {
-				curr_node = open_nodes.pop(); // Get node with lowest f cost
+        // End of path
+        if (curr_node === end_node) {
+          var curr = curr_node;
+          var prev = null;
+          var res = [];
+          while (curr.parent) {
+            /*if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
+                (prev.j == curr.j && curr.j == curr.parent.j))) {
+              res.push(curr);
+            }
+            else if (!prev)
+              res.push(curr); */
+            res.push(curr);
+            prev = curr;
+            curr = curr.parent;
+            prev.parent = null;
+          }
+          return res;  
+        }
+  
+        curr_node.closed = true;
 
-				// End of path
-				if (curr_node === end_node) {
-					var curr = curr_node;
-					var prev = null;
-					var res = [];
-					while (curr.parent) {
-						if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
-							(prev.j == curr.j && curr.j == curr.parent.j))) {
-							res.push(curr);
-					}
-					else if (!prev)
-						res.push(curr);
-						prev = curr;
-						curr = curr.parent;
-						prev.parent = null;
-					}
-					return res;  
-				}
+        var neighbors = path_grid.findNeighbors(curr_node);
+        for (var iter = 0; iter < neighbors.length; iter++) {
+          var neighbor = neighbors[iter];
+          // Skip neighbors that aren't valid for path
+          if (neighbor.closed || !neighbor.passable)
+            continue;
+          
+          var visited = neighbor.visited;
+          if (neighbor.i == curr_node.i || neighbor.j == curr_node.j)
+            var g_score = curr_node.g + path_grid.G_straight;
+          else
+            var g_score = curr_node.g + path_grid.G_diagonal;
 
-				curr_node.closed = true;
+          if (!neighbor.visited || g_score < neighbor.g) {
+            neighbor.visited = true;
+            neighbor.parent = curr_node;
+            neighbor.h = neighbor.h || path_grid.getDiagonalDistance(neighbor, end_node);
+            neighbor.g = g_score;
+            neighbor.f = neighbor.g + neighbor.h;
 
-				var neighbors = path_grid.findNeighbors(curr_node);
-				for (var iter = 0; iter < neighbors.length; iter++) {
-					var neighbor = neighbors[iter];
-					// Skip neighbors that aren't valid for path
-					if (neighbor.closed || !neighbor.passable)
-						continue;
-
-					var visited = neighbor.visited;
-					if (neighbor.i == curr_node.i || neighbor.j == curr_node.j)
-						var g_score = curr_node.g + path_grid.G_straight;
-					else
-						var g_score = curr_node.g + path_grid.G_diagonal;
-
-					if (!neighbor.visited || g_score < neighbor.g) {
-						neighbor.visited = true;
-						neighbor.parent = curr_node;
-						neighbor.h = neighbor.h || path_grid.getDiagonalDistance(neighbor, end_node);
-						neighbor.g = g_score;
-						neighbor.f = neighbor.g + neighbor.h;
-
-						if (!visited)
-							open_nodes.push(neighbor);
-						else
-							open_nodes.rescoreElement(neighbor);
-					}
-				}
-			}
-			return []; // No path found
-		},
-		getGridPosition: function() {
-			return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
-		},
+            if (!visited)
+              open_nodes.push(neighbor);
+            else
+              open_nodes.rescoreElement(neighbor);
+          }
+        }
+      }
+      return []; // No path found
+    },
+    getGridPosition: function() {
+      return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
+    },
 		attack: function (target) {
 			this.data.attacking = false;
 			if (!target || !target.data.alive) {
