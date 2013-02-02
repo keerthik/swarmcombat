@@ -115,7 +115,6 @@ function PathingGrid(drone_id) {
       
       return neighbors;   
     };
-  }
 }
 
 function CreateGUI() {
