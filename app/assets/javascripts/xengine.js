@@ -57,10 +57,10 @@ function particle()
 {
 	this.x = 0;
 	this.y = 0;
-	
+	speed = 100;
 	//Lets add random velocity to each particle
-	this.vx = Math.random()*10-5;
-	this.vy = Math.random()*10-5;
+	this.vx = Math.random()*speed-.5*speed;
+	this.vy = Math.random()*speed-.5*speed;
 	
 	//Random colors
 	var r = Math.random()*255>>0;
@@ -76,18 +76,18 @@ function sprayParticle()
 {
 
 	this.setDirection = function (facing) {
-		var speed = 7;
+		var speed = 100;
 		var vector = drxnVector(facing, speed);
 		//Lets add random velocity to each particle
-		this.vx = vector.x + Math.random()*.4-.2;
-		this.vy = vector.y + Math.random()*.4-.2;
+		this.vx = vector.x + Math.random()*.2*speed-.1*speed;
+		this.vy = vector.y + Math.random()*.2*speed-.1*speed;
 	};
 
 	this.x = 0;
 	this.y = 0;
 	
-	this.vx = 3 + Math.random()*.4-.2;
-	this.vy = 4 + Math.random()*.4-.2;
+	this.vx = 30 + Math.random()*10-5;
+	this.vy = 40 + Math.random()*10-5;
 	
 	//Random colors
 	var r = Math.random()*255>>0;
@@ -139,19 +139,20 @@ function ParticleSystem(count, bounds, spray) {
 		}
 
 	};
-	this.draw = function(ctx, pos) {
+	this.draw = function(ctx, pos, dt) {
 		ctx.globalCompositeOperation = "source-over";
 		ctx.globalCompositeOperation = "lighter";
 		
+		//console.log(dt);
 		for(var t = 0; t < this.particles.length; t++)
 		{
 			var p = this.particles[t];
 			
 			ctx.beginPath();
 
-			//Lets use the velocity now
-			p.x += p.vx;
-			p.y += p.vy;
+			//Propel by velocity, taking time into account
+			p.x += p.vx*dt;
+			p.y += p.vy*dt;
 
 			//Reset particle on leaving -- or stop drawing it
 			if (!spray) {
