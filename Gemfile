@@ -5,8 +5,9 @@ gem 'rails', '3.2.11'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'libv8'
-gem 'therubyracer'
+gem 'execjs'
+gem 'libv8', :platform => :ruby
+gem 'therubyracer', :platform => :ruby
 gem 'pg'
 gem 'bootstrap-sass'
 
