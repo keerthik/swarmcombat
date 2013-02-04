@@ -1,0 +1,30 @@
+<h1>Instruction Sets Used</h1>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Created By</th>
+      <th>Instructions</th>
+      <th>Number of Times Used</th>
+      <th>Time First Used</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @orders.each do |order| %>
+    <tr>
+      <td><%= order.name %></td>
+      <td><%= order.author %></td>
+      <td><%= order.content %></td>
+      <td><%= order.nused %></td>
+      <td><%= order.created_at %></td>
+    </tr>
+    <% end %>
+    <% if @orders.empty? %>
+      <tr><td colspan="2">No orders have been uploaded.</td></tr>
+    <% end %>
+  </tbody>
+</table>
+<br />
+<%= link_to 'Create New Instruction', new_order_path, :class => "btn btn-inverse" %>
+<%= link_to 'Delete All Instructions', {:action => 'delete_all_orders'}, :class => "btn btn-danger" %>
