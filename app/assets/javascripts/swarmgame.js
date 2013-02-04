@@ -12,6 +12,7 @@ function RunGame() {
 
 function PrepareExecution() {
 	executing = true;
+	UpdateOrders();
 }
 
 // Object representing the game grid used for A* pathing
@@ -115,34 +116,6 @@ function PathingGrid(drone_id) {
 
 	    return neighbors;   
 	};
-}
-
-function CreateGUI() {
-	console.log("Making UI");
-	
-	/* TEST GUI
-	*/
-	var defaultgreen = "attack(NearestEnemy());";
-	var defaultred = "attack(NearestEnemy());";
-	$("#game_ui")
-	.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
-	$("#game_ui")
-	.append('Red: <input type="text" id="redstruction" value="'+defaultred+'"><br>');
-	$("#game_ui")
-	.append('<input type="button" id="ready" value="Ready!" />')
-	$("#ready")
-	.click(function(){
-		Crafty("Trisim").each(function(){
-			this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
-		});
-		Crafty("Diasim").each(function(){
-			this.data.instructions = (this.data.owner > 0)?($('#redstruction').val()):($('#greenstruction').val());
-		});
-		PrepareExecution();
-	});
-	/* Pass one
-	*/
-	
 }
 
 // Test clients have servermode true

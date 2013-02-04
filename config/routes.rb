@@ -1,9 +1,15 @@
 Swarmcombat::Application.routes.draw do
 
+
+  match '/orders/delete_all_orders', :controller => 'orders', :action => 'delete_all_orders'
+  match '/orders/create', :controller => 'orders', :action => 'create'
+  resources :orders
+
   match '/games/delete_all_games', :controller => 'games', :action => 'delete_all_games'
   resources :games
 
   get "home/index"
+  #get "orders/index"
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
