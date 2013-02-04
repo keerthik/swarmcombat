@@ -1,16 +1,18 @@
 <h2>Open Games</h2>
-<table class="table table-striped">
+<table class='table table-striped'>
   <thead>
     <tr>
       <th>Game Name</th>
       <th>Time Created</th>
+      <th>Joinable </th>
     </tr>
   </thead>
   <tbody>
     <% @games.each do |game| %>
     <tr>
-      <td><%= link_to game.name, game %></td>
+      <td><%= game.name %></td>
       <td><%= game.created_at %></td>
+      <td><%= link_to 'Join Game', game, :class => "btn" %></td>
     </tr>
     <% end %>
     <% if @games.empty? %>
