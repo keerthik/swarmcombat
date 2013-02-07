@@ -4,12 +4,19 @@
 
 #game_box
 {
-text-align: center;
-margin: 0 auto;
+	text-align: center;
+	margin: 0 auto;
 }
 
+#game_ui
+{
+	margin: 10px;
+	padding: 10px;
+	border: 2px solid;
+	border-radius: 10px;
+}
 #cr-stage
 {
-align: center;
-margin: 0 auto;
+	align: center;
+	margin: 0 auto;
 }

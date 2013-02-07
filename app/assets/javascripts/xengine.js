@@ -129,7 +129,8 @@ function ParticleSystem(count, bounds, spray) {
 		if(arguments.length < 3) return;
 		for (var i = 0; i < this.particles.length; i++) {
 			var p = this.particles[i];
-			if(Math.abs(p.x) > 5 + Math.abs(target.x-pos.x) || Math.abs(p.y) > 5 + Math.abs(target.y-pos.y)) {
+			var myPos = new Crafty.math.Vector2D(pos.x, pos.y);
+			if (new Crafty.math.Vector2D(p.x, p.y).magnitudeSq() > myPos.distanceSq(new Crafty.math.Vector2D(target.x, target.y))) {
 				p.x = 0;
 				p.y = 0;
 			}
@@ -137,7 +138,6 @@ function ParticleSystem(count, bounds, spray) {
 				p.setDirection(facing);
 			}
 		}
-
 	};
 	this.draw = function(ctx, pos, dt) {
 		ctx.globalCompositeOperation = "source-over";
