@@ -12,7 +12,6 @@ function RunGame() {
 
 function PrepareExecution() {
 	executing = true;
-	UpdateOrders();
 }
 
 // Object representing the game grid used for A* pathing
