@@ -1,4 +1,6 @@
 class GamesController < ApplicationController
+  before_filter :authenticate_user!, :except => [:index]
+
   def index
     @games = Game.all
   end

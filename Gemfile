@@ -10,6 +10,7 @@ gem 'libv8', :platform => :ruby
 gem 'therubyracer', :platform => :ruby
 gem 'pg'
 gem 'bootstrap-sass'
+gem 'devise'
 
 
 # Gems used only for assets and not required

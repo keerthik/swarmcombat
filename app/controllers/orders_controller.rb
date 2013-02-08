@@ -1,4 +1,6 @@
 class OrdersController < ApplicationController
+  before_filter :authenticate_user!, :except => [:index, :show]
+
   # GET /orders
   # GET /orders.json
   def index
