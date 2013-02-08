@@ -25,10 +25,9 @@ function CreateGUI() {
 	getServer();
 	console.log("Making UI");
 
-	GUIPassOne();
+	//GUIPassOne();
+	GUITest();
 	
-	$("#game_ui")
-		.append('<input class="btn btn-primary" id="ready" value="Ready!" />');
 	$("#ready")
 		.click(function(){
 			readyFunc();	
@@ -44,10 +43,14 @@ function GUITest() {
 	.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
 	$("#game_ui")
 	.append('Red: <input type="text" id="redstruction" value="'+defaultred+'"><br>');
+	$("#game_ui")
+	.append('<input type="button" class="btn btn-primary" id="ready" value="Ready!" />');
+	
 	readyFunc = function () {
 		opponentReady = test;
 		myCode = (me == 0)?$('#greenstruction').val():($('#redstruction').val());
 		theirCode = (me == 1)?$('#greenstruction').val():($('#redstruction').val());
+		PrepareExecution();
 	};
 } 
 
@@ -55,6 +58,9 @@ var requesting_or_returned = false;
 function GUIPassOne() {
 /* Pass one
 */
+	$("#game_ui")
+	.append('<input type="button" class="btn btn-primary" id="ready" value="Ready!" />');
+	
 	readyFunc = function() {
 		if (requesting_or_returned) {
 			console.log("Already ")
