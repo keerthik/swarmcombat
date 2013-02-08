@@ -28,8 +28,8 @@ function CreateGUI() {
 	GUIPassOne();
 	
 	$("#game_ui")
-		.append('<input class="btn btn-primary" id="ready" value="Ready!" />')
-		$("#ready")
+		.append('<input class="btn btn-primary" id="ready" value="Ready!" />');
+	$("#ready")
 		.click(function(){
 			readyFunc();	
 		});
