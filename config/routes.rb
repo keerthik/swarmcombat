@@ -1,6 +1,8 @@
 Swarmcombat::Application.routes.draw do
 
 
+  devise_for :users
+
   match '/orders/delete_all_orders', :controller => 'orders', :action => 'delete_all_orders'
   match '/orders/create', :controller => 'orders', :action => 'create'
   resources :orders

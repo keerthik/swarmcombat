@@ -47,11 +47,28 @@
               <li><a href="#contact">Contact</a></li>
             </ul>
           </div>
+          <div class="nav-collapse collapse" style="float:right">
+            <ul class="nav">
+              <% if current_user %>
+                <li><h5 style="color:white">Welcome, <%= current_user.username %>!</h5></li>
+                <li><%= link_to "Edit Account", edit_user_registration_path %></li>
+                <li><%= link_to "Logout", destroy_user_session_path, :method => :delete %></li>
+              <% else %>
+                <li><%= link_to "Sign In", new_user_session_path %></li>
+                <li><%= link_to "Register", new_user_registration_path %></li>
+              <% end %>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="container">
+      <% if flash[:notice] %>
+        <p class="notice"><%= notice %></p>
+      <% elsif flash[:alert] %>
+        <p class="alert"><%= alert %></p>
+      <% end %>
 
       <%= yield %>
 
