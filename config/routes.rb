@@ -6,7 +6,11 @@ Swarmcombat::Application.routes.draw do
   resources :orders
 
   match '/games/delete_all_games', :controller => 'games', :action => 'delete_all_games'
-  resources :games
+  resources :games do
+    member do
+      get 'ready'
+    end
+  end
 
   get "home/index"
   #get "orders/index"
