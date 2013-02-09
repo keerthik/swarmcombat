@@ -8,6 +8,7 @@ function RunGame() {
 
   // Create grid
   Grid = new PathingGrid();
+
 }
 
 function PrepareExecution() {

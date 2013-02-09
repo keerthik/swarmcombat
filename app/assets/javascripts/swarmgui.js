@@ -25,8 +25,11 @@ function CreateGUI() {
 	getServer();
 	console.log("Making UI");
 
+	$("#game_ui")
+	.append('<input type="button" class="btn btn-primary" id="ready" value="Ready!" />');
+
 	//GUIPassOne();
-	GUITest();
+	GUIPassOne();
 	
 	$("#ready")
 		.click(function(){
@@ -58,8 +61,26 @@ var requesting_or_returned = false;
 function GUIPassOne() {
 /* Pass one
 */
+	var defaultCondition = "if(data.hp < 0.5*data.maxhp)";
+	var defaultAction = "attack(NearestEnemy();";
 	$("#game_ui")
-	.append('<input type="button" class="btn btn-primary" id="ready" value="Ready!" />');
+	.append('<div id="priority_queue"></div>');
+	$("#priority_queue")
+	.append(
+		'<div id="gui_unit_0" class="gui_unit">' +
+			'<input type="button" class="btn" id="add_row_up" value="^ +" />' +
+			'  C: <input type="text" id="condition" value="'+defaultCondition+'">  ' +
+			'  A: <input type="text" id="condition" value="'+defaultAction+'">  ' +
+			'<input type="button" class="btn" id="add_row_down" value="+ v" />' +
+		'</div>');
+	$("#add_row_up")
+		.click(function() {
+			$(this).closest($(".gui_unit")).before($("#gui_unit_0").clone(true));
+		});
+	$("#add_row_down")
+		.click(function() {
+			$(this).closest($(".gui_unit")).after($("#gui_unit_0").clone(true));
+		});
 	
 	readyFunc = function() {
 		if (requesting_or_returned) {
