@@ -6,13 +6,6 @@ body
 {
 	
 }
-.gui_unit
-{
-	padding: 5px;
-	margin: 5px;
-	border: 1px solid black;
-	border-radius: 5px;	
-}
 
 #priority_queue 
 {
@@ -23,10 +16,37 @@ body
 	background-color: #888;
 }
 
-#game_ui
+.gui_unit
 {
+	padding: 2px;
+	margin: 2px;
 }
 
+input.condition
+{
+	margin-top: 10px;
+}
+
+input.condition:focus{
+	color: #000;
+	background-color: #aaf;
+}
+
+.action
+{
+	margin-top: 10px;
+}
+
+input.action:focus{
+	color: #000;
+	background-color: #faa;
+}
+
+#game_ui
+{
+	margin: 10px;
+	padding: 10px;
+}
 
 #game_box
 {
