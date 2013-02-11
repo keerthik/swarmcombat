@@ -22,11 +22,25 @@ class GamesController < ApplicationController
     end
   end
 
+  def validate_code(code)
+    # DO SOMETHING TO MAKE SURE NO CHEATING
+    return code
+  end
+
   def ready
     @game = Game.find(params[:id])
-    @pid = params[:pid]
+    pid = params[:pid].to_i;
+    incode = params[:mycode]
     #TODO: Make this response contain values obtained from the game server, not these hardcoded ones
-    @response = {:ready => true, :code0 => "data.facing += 0.05;", :code1 => "data.facing -= 0.05;"}
+    if (pid == 0)
+      code0 = validate_code(incode);
+      code1 = "data.facing -= 0.05;"
+    else
+      code0 = "data.facing -= 0.05;"
+      code1 = validate_code(incode);
+    end
+
+    @response = {:ready => true, :code0 => code0, :code1 => code1}
     respond_to do |format|    
       format.json { render json: @response.to_json }
     end

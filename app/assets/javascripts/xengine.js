@@ -41,6 +41,7 @@ function drawHp(ctx, pos, size, hp, hpmax, color) {
 	ctx.fill();
 }
 
+// Deprecated style of drawing lasers
 function drawBeams(ctx, pos, apex, targetPos, color) {
 	ctx.lineWidth = 3;
 	ctx.beginPath();
@@ -72,22 +73,23 @@ function particle()
 	this.radius = Math.random()*2+4;
 }
 
+// Used for particle system - has a direction
 function sprayParticle()
 {
 
 	this.setDirection = function (facing) {
-		var speed = 100;
+		var speed = 250;
 		var vector = drxnVector(facing, speed);
 		//Lets add random velocity to each particle
-		this.vx = vector.x + Math.random()*.2*speed-.1*speed;
-		this.vy = vector.y + Math.random()*.2*speed-.1*speed;
+		this.vx = vector.x + Math.random()*.05*speed-.025*speed;
+		this.vy = vector.y + Math.random()*.05*speed-.025*speed;
 	};
 
 	this.x = 0;
 	this.y = 0;
 	
-	this.vx = 30 + Math.random()*10-5;
-	this.vy = 40 + Math.random()*10-5;
+	this.vx = 30 + Math.random()*6-3;
+	this.vy = 40 + Math.random()*6-3;
 	
 	//Random colors
 	var r = Math.random()*255>>0;

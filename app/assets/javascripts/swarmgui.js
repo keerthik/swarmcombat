@@ -127,9 +127,10 @@ function GUIPassOne() {
 		}
 
 		var opponent_deployment = function (data) {
+			console.log(data);
 			opponentReady = data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
-			//myCode = data['code' + me];
+			myCode = data['code' + me];
 			theirCode = data['code' + (1-me)];
 			console.log(opponentReady);
 			// Let the games begin!
@@ -160,7 +161,7 @@ function CompileCode() {
 		tempCode += "\t" + $(this).children(".action").val() + ";\nelse";
 	});
 	tempCode += "{}";
-	console.log(tempCode);
+	//console.log(tempCode);
 	myCode = tempCode;
 }
 
