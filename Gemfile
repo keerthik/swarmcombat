@@ -6,8 +6,8 @@ gem 'rails', '3.2.11'
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 gem 'execjs'
-gem 'libv8', :platform => :ruby
-gem 'therubyracer', :platform => :ruby
+gem 'libv8', 		'~> 3.11.8.13', :platform => :ruby
+#gem 'therubyracer',					:platform => :ruby
 gem 'pg'
 gem 'bootstrap-sass'
 gem 'devise'
