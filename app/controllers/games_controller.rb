@@ -14,7 +14,9 @@ class GamesController < ApplicationController
   end
 
   def create
-    @game = Game.new(params[:game])
+    game_params = params[:game]
+    game_params[:player0] = current_user.username
+    @game = Game.new(game_params)
     if @game.save 
       redirect_to @game
     else
@@ -35,11 +37,19 @@ class GamesController < ApplicationController
     incode = params[:mycode]
     #TODO: Make this response contain values obtained from the game server, not these hardcoded ones
     if (pid == 0)
-      code0 = validate_code(incode);
-      code1 = "data.facing -= 0.05;"
+      if (current_user.username == @game[:player0])
+        code0 = validate_code(incode);
+        code1 = "data.facing -= 0.05;"
+      else
+        #Do something about unverified game
+      end
     else
-      code0 = "data.facing -= 0.05;"
-      code1 = validate_code(incode);
+      if (current_user.username == @game[:player1])
+        code0 = "data.facing -= 0.05;"
+        code1 = validate_code(incode);
+      else
+        #unverified game
+      end
     end
 
     @response = {:ready => true, :code0 => code0, :code1 => code1}
