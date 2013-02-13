@@ -110,12 +110,12 @@ function PathingGrid(drone_id) {
     			if (this.nodes[i+i_iter] && this.nodes[i+i_iter][j+j_iter] &&
     				(i_iter != 0 || j_iter != 0)) {
     				neighbors.push(this.nodes[i+i_iter][j+j_iter]);
-	    		}
-	    	}
-	    } 
+    		}
+    	}
+    } 
 
-	    return neighbors;   
-	};
+    return neighbors;   
+};
 }
 
 // Test clients have servermode true
@@ -194,15 +194,15 @@ function CreateDrones() {
 		Clients pull data from server into this entity, server pushes changes to the
 		game state by modifying this entity and publishing.
 		*/
-		Crafty.c("DroneData", {
-			init:function (){
-				this.hp = this.maxhp;
-				this.bind('EnterFrame', function(e) {
-					if (clientmode && !servermode) {
+	Crafty.c("DroneData", {
+		init:function (){
+			this.hp = this.maxhp;
+			this.bind('EnterFrame', function(e) {
+				if (clientmode && !servermode) {
 					// TODO: Pull update
 				}
 			});
-			},
+		},
 		// Flags for animation/data
 		alive: true,
 		attacking: false,
@@ -237,33 +237,37 @@ function CreateDrones() {
 			methodName	-> Game operation, only available for hacking
 			MethodName	-> Exposed operation, available for instruction set
 			*/
-			Crafty.c("DroneOps", {
-				init:function (){
-					this.bind('EnterFrame', function (e) {
-						this._always();
-						this._react();
-						if (servermode && !clientmode) {
-				// TODO: Push update
+	Crafty.c("DroneOps", {
+		init:function (){
+			this.bind('EnterFrame', function (e) {
+				this._always();
+				this._react();
+				if (servermode && !clientmode) {
+					// TODO: Push update
+				}
+			});
+			this.bind('KeyUp', function(e) {
+				this._keyup(e);
+			});
+		},
+
+		attackcd: 0,
+		NearestEnemy: function () {
+			var i = 0;
+			// TODO: What is this hardcoded nonsense
+			var n = 3;
+			var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+			while (i < n && !enemy.data.alive) {
+				i++;
+				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 			}
-		});
-					this.bind('KeyUp', function(e) {
-						this._keyup(e);
-					});
-				},
-				attackcd: 0,
-				NearestEnemy: function () {
-					var i = 0;
-					var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
-					while (i < 3 && !enemy.data.alive) {
-						i++;
-						enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
-					}
-					return (i<3)?enemy:false;
-				},
-				lookAt: function (targetPos) {
-					var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
-					requiredFacing = requiredFacing.mod(2*Math.PI);
-					var requiredturn = requiredFacing - this.data.facing;
+			return (i<n)?enemy:false;
+		},
+
+		lookAt: function (targetPos) {
+			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
+			requiredFacing = requiredFacing.mod(2*Math.PI);
+			var requiredturn = requiredFacing - this.data.facing;
 			// Looking at target
 			if (Math.abs(requiredturn) < 0.0001) return true;
 			var direction = (requiredturn<0?-1:1);
@@ -276,122 +280,134 @@ function CreateDrones() {
 			this.data.facing += direction*Math.min( this.data.turnspeed*timer.dt, Math.abs(requiredturn));
 			return false;
 		},
+
 		moveFd: function () {
 			this.data.moving = true;
 			this.data.x += Math.cos(this.data.facing)*this.data.movespeed*timer.dt;
 			this.data.y += -Math.sin(this.data.facing)*this.data.movespeed*timer.dt;
 			this._reconcileBounds();
 		},
+
 		moveTo: function(target_x, target_y) {
 			var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
 			var curr_cell = this.getGridPosition();
 			if (curr_cell.i == target_grid_pos.i && curr_cell.j == target_grid_pos.j) {
 				this.data.path = null;
-      	return true; // Already at target
-      }
-      else if (this.data.path && this.data.path.length == 0)
-      	return false; // No path to target
-      if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
-      	this.data.path[0].j == target_grid_pos.j)) {
-      	var temp_next_cell = this.data.path[this.data.path.length-1];
-      this.data.grid.updateState();
-      	// Recalculate path if there is a collision
-      	var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
-      	if (!next_cell.passable) {
-      		this.data.path = this.getPath(target_grid_pos);
-      		return false;
-      	}
-      	if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
-      		this.data.path.pop();
-      		next_cell = this.data.path[this.data.path.length-1];
-      		if (!next_cell) {
-      			this.data.path = null;
-            return true; // Reached target
-        }
-    }
-    if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
-    	this.moveFd();
-          return false; // Not at target yet
-      }
-  }
-  else
-  	this.data.path = this.getPath(target_grid_pos);
-  return false;
-},
-getPath: function(target_cell) {
-	var path_grid = new PathingGrid(this[0]);
-	path_grid.updateState();
-	this.data.grid = path_grid;
-	var open_nodes = new BinaryHeap(function(node) {
-		return node.f;
-	});
-	var start_cell = this.getGridPosition();
-	open_nodes.push(path_grid.nodes[start_cell.i][start_cell.j]);
-	var end_node = path_grid.nodes[target_cell.i][target_cell.j];
+	      		return true; // Already at target
+	      	}
+	      	else if (this.data.path && this.data.path.length == 0)
+				return false; // No path to target
+			if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
+				this.data.path[0].j == target_grid_pos.j)) {
+				var temp_next_cell = this.data.path[this.data.path.length-1];
+			this.data.grid.updateState();
+				// Recalculate path if there is a collision
+				var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
+				if (!next_cell.passable) {
+					this.data.path = this.getPath(target_grid_pos);
+					return false;
+				}
+				if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
+					this.data.path.pop();
+					next_cell = this.data.path[this.data.path.length-1];
+					if (!next_cell) {
+						this.data.path = null;
+			            return true; // Reached target
+			        }
+			    }
+			    if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
+			    	this.moveFd();
+					return false; // Not at target yet
+				}
+			}	
+			else
+				this.data.path = this.getPath(target_grid_pos);
+			return false;
+		},
+		
+		getPath: function(target_cell) {
+			var path_grid = new PathingGrid(this[0]);
+			path_grid.updateState();
+			this.data.grid = path_grid;
+			var open_nodes = new BinaryHeap(function(node) {
+				return node.f;
+			});
+			var start_cell = this.getGridPosition();
+			open_nodes.push(path_grid.nodes[start_cell.i][start_cell.j]);
+			var end_node = path_grid.nodes[target_cell.i][target_cell.j];
 
-	while (open_nodes.size() > 0) {
-        curr_node = open_nodes.pop(); // Get node with lowest f cost
+			while (open_nodes.size() > 0) {
+		        curr_node = open_nodes.pop(); // Get node with lowest f cost
 
-        // End of path
-        if (curr_node === end_node) {
-        	var curr = curr_node;
-        	var prev = null;
-        	var res = [];
-        	while (curr.parent) {
-            /*if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
-                (prev.j == curr.j && curr.j == curr.parent.j))) {
-              res.push(curr);
-            }
-            else if (!prev)
-            	res.push(curr); */
-            res.push(curr);
-            prev = curr;
-            curr = curr.parent;
-            prev.parent = null;
-        }
-        return res;  
-    }
+		        // End of path
+		        if (curr_node === end_node) {
+		        	var curr = curr_node;
+		        	var prev = null;
+		        	var res = [];
+		        	while (curr.parent) {
+			            /*if (prev && !((prev.i == curr.i && curr.i == curr.parent.i) || 
+			                (prev.j == curr.j && curr.j == curr.parent.j))) {
+			              res.push(curr);
+			            }
+			            else if (!prev)
+			            	res.push(curr); */
+			            res.push(curr);
+			            prev = curr;
+			            curr = curr.parent;
+			            prev.parent = null;
+			        }
+			        return res;  
+			    }
+			    curr_node.closed = true;
 
-    curr_node.closed = true;
+			    var neighbors = path_grid.findNeighbors(curr_node);
+			    for (var iter = 0; iter < neighbors.length; iter++) {
+			    	var neighbor = neighbors[iter];
+			        // Skip neighbors that aren't valid for path
+			        if (neighbor.closed || !neighbor.passable)
+			        	continue;
 
-    var neighbors = path_grid.findNeighbors(curr_node);
-    for (var iter = 0; iter < neighbors.length; iter++) {
-    	var neighbor = neighbors[iter];
-          // Skip neighbors that aren't valid for path
-          if (neighbor.closed || !neighbor.passable)
-          	continue;
-          
-          var visited = neighbor.visited;
-          if (neighbor.i == curr_node.i || neighbor.j == curr_node.j)
-          	var g_score = curr_node.g + path_grid.G_straight;
-          else
-          	var g_score = curr_node.g + path_grid.G_diagonal;
+			        var visited = neighbor.visited;
+			        if (neighbor.i == curr_node.i || neighbor.j == curr_node.j)
+			        	var g_score = curr_node.g + path_grid.G_straight;
+			        else
+			        	var g_score = curr_node.g + path_grid.G_diagonal;
 
-          if (!neighbor.visited || g_score < neighbor.g) {
-          	neighbor.visited = true;
-          	neighbor.parent = curr_node;
-          	neighbor.h = neighbor.h || path_grid.getDiagonalDistance(neighbor, end_node);
-          	neighbor.g = g_score;
-          	neighbor.f = neighbor.g + neighbor.h;
+			        if (!neighbor.visited || g_score < neighbor.g) {
+			        	neighbor.visited = true;
+			        	neighbor.parent = curr_node;
+			        	neighbor.h = neighbor.h || path_grid.getDiagonalDistance(neighbor, end_node);
+			        	neighbor.g = g_score;
+			        	neighbor.f = neighbor.g + neighbor.h;
 
-          	if (!visited)
-          		open_nodes.push(neighbor);
-          	else
-          		open_nodes.rescoreElement(neighbor);
-          }
-      }
-  }
-      return []; // No path found
-  },
-  getGridPosition: function() {
-  	return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
-  },
-  attack: function (target) {
-  	this.data.attacking = false;
-  	if (!target || !target.data.alive) {
-  		return false;
-  	}
-  	this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
+			        	if (!visited)
+			        		open_nodes.push(neighbor);
+			        	else
+			        		open_nodes.rescoreElement(neighbor);
+			        }
+			    }
+			}
+    		return []; // No path found
+    	},
+
+    	getGridPosition: function() {
+    		return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
+    	},
+    	
+    	retreat: function () {
+			var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+			while (i < 3 && !enemy.data.alive) {
+				i++;
+				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+			}
+    	},
+    	
+    	attack: function (target) {
+    		this.data.attacking = false;
+    		if (!target || !target.data.alive) {
+    			return false;
+    		}
+    		this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
 
 			// Get in range of target
 			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
@@ -410,6 +426,7 @@ getPath: function(target_cell) {
 			}
 			return true;
 		},
+
 		takeDamage: function(damage) {
 			// For animation purposes
 			this.data.takingdamage = true;
