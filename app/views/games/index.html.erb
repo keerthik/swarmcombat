@@ -4,6 +4,8 @@
     <tr>
       <th>Game Name</th>
       <th>Time Created</th>
+      <th>Player 0</th>
+      <th>Player 1</th>
       <th>Joinable </th>
     </tr>
   </thead>
@@ -12,7 +14,19 @@
     <tr>
       <td><%= game.name %></td>
       <td><%= game.created_at %></td>
-      <td><%= link_to 'Join Game', game, :class => "btn" %></td>
+      <td><%= game.player0 %></td>
+      <td>
+      <% if game.player1 == nil %>
+        *Open*
+      <% else %>
+        <%= game.player1 %>
+      <% end %>
+      </td>
+      <td><% if game.player0 == nil or current_user.username == game.player0 or \
+              game.player1 == nil or current_user.username == game.player1 %>
+            <%= link_to 'Resume Game', game, :class => "btn" %>
+            <% end %>
+      </td>
     </tr>
     <% end %>
     <% if @games.empty? %>
