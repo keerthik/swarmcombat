@@ -179,7 +179,7 @@ function UploadOrders() {
 	if (server == "") return;
 	var addr = [server, 'orders', 'create'].join('/');
 	$.post(addr,
-		{order:{'author': "kOrc", 'name': "Kickass Strat", 'content': myCode}},
+		{order:{'name': "Kickass Strat", 'content': myCode}},
 		function(data) {
 			// Proceed if verified
 			//console.log(data);

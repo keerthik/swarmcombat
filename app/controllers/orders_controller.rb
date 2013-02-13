@@ -59,7 +59,9 @@ class OrdersController < ApplicationController
         end
       end
     else
-      @order = Order.new(params[:order])
+      order_params = params[:order]
+      order_params[:author] = current_user.username
+      @order = Order.new(order_params)
       respond_to do |format|
         if @order.save
           format.html { redirect_to @order, notice: 'Order was successfully created.' }

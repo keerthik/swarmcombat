@@ -27,6 +27,8 @@ class GamesController < ApplicationController
     return code
   end
 
+
+  # Call made when a player is ready, returning opponent code when opponent's ready
   def ready
     @game = Game.find(params[:id])
     pid = params[:pid].to_i;
