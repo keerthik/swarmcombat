@@ -24,7 +24,6 @@ function getServer() {
 function CreateGUI() {
 	getServer();
 	console.log("Making UI");
-
 	$("#game_ui")
 	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
 
