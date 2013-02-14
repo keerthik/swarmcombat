@@ -22,7 +22,9 @@
         <%= game.player1 %>
       <% end %>
       </td>
-      <td><% if current_user.username == game.player0 or \
+      <td>
+        <% if current_user != nil %>
+          <% if current_user.username == game.player0 or \
               current_user.username == game.player1 %>
             <%= link_to 'Resume Game', game, :class => "btn" %>
           <% else %>
@@ -32,6 +34,9 @@
               *Game full!*
             <% end %>
           <% end %>
+        <% else %>
+          Sign in!
+        <% end %>
       </td>
     </tr>
     <% end %>

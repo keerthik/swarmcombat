@@ -12,7 +12,7 @@ class GamesController < ApplicationController
         # Something about illegal entry/watching only
       else
         # This is a player joining the empty slot
-        @game[:player1] = current_user.username
+        @game.update_attributes(:player1 => current_user.username)
       end
     else
       # Welcome player 0
@@ -50,14 +50,14 @@ class GamesController < ApplicationController
     if (pid == 0)
       if (current_user.username == @game[:player0])
         code0 = validate_code(incode);
-        @game.code0 = code0
+        @game.update_attributes(:code0 => code0)
       else
         #Do something about unverified game
       end
     else
       if (current_user.username == @game[:player1])
         code1 = validate_code(incode);
-        @game.code1 = code1
+        @game.update_attributes(:code1 => code1)
       else
         #Similarly, unverified game
       end

@@ -107,7 +107,6 @@ function GUIPassOne() {
 		}
 		// Use a timered loop to check for opponent ready
 		// TODO: Determine actual game number (from the URL?)
-		var gid = 0;
 		var addr = [gameserver, 'ready'].join('/');
 		// TODO: Post my ready state and code to the server
 
@@ -126,12 +125,11 @@ function GUIPassOne() {
 		}
 
 		var opponent_deployment = function (data) {
-			console.log(data);
+			//console.log(data);
 			opponentReady = data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
 			myCode = data['code' + me];
 			theirCode = data['code' + (1-me)];
-			console.log(opponentReady);
 			// Let the games begin!
 			if (opponentReady) {
 				// Assign code to all drones
@@ -160,7 +158,7 @@ function CompileCode() {
 		tempCode += "\t" + $(this).children(".action").val() + ";\nelse";
 	});
 	tempCode += "{}";
-	//console.log(tempCode);
+	console.log(tempCode);
 	myCode = tempCode;
 }
 
