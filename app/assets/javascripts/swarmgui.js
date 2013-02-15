@@ -97,6 +97,11 @@ function GUIPassOne() {
 		});
 	
 	readyFunc = function() {
+		if (!verified) {
+			console.log("Code unverified...Please verify code");
+			return;
+		}
+
 		if (requesting_or_returned) {
 			console.log("Already ")
 			return;
@@ -144,13 +149,17 @@ function GUIPassOne() {
 			}
 		}
 		// Get opponent code and ready state from the server
-		CompileCode();
 		request_opponent_deployment();
 	};
 
 }
 
+var verified = false;
+function VerifyCode() {}
+	verified = true;
+}
 function CompileCode() {
+	if (!verified) VerifyCode();
 	var units = $("#priority_queue").children(".gui_unit");
 	var tempCode = "";
 	units.each( function (index) {
