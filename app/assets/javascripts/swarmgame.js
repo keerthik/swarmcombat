@@ -251,11 +251,25 @@ function CreateDrones() {
 			});
 		},
 
-		attackcd: 0,
 		NearestEnemy: function () {
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var closeDist = -1;
+			var closeEnemy;
+			for (var i = 0; i < n; i++ ) {
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) {
+					var thisDist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(enemy.data.x, enemy.data.y))
+					closeEnemy = (closeDist==-1||thisDist<closeDist)?enemy:closeEnemy;
+					closeDist = (closeDist==-1||thisDist<closeDist)?thisDist:closeDist;
+				}
+			}
+			return (closeDist!=-1)?closeEnemy:false;
+		},
+
+		FirstLiveEnemy: function () {
 			var i = 0;
-			// TODO: What is this hardcoded nonsense
-			var n = 3;
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
 			var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 			while (i < n && !enemy.data.alive) {
 				i++;
@@ -402,6 +416,7 @@ function CreateDrones() {
 			}
     	},
     	
+		attackcd: 0,
     	attack: function (target) {
     		this.data.attacking = false;
     		if (!target || !target.data.alive) {

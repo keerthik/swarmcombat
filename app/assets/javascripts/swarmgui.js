@@ -132,10 +132,10 @@ function GUIPassOne() {
 
 		var opponent_deployment = function (data) {
 			//console.log(data);
-			opponentReady = data['ready'];
+			opponentReady = test||data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
 			myCode = data['code' + me];
-			theirCode = data['code' + (1-me)];
+			theirCode = test?myCode:data['code' + (1-me)];
 			// Let the games begin!
 			if (opponentReady) {
 				// Assign code to all drones
