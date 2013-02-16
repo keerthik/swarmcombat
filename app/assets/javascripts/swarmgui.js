@@ -97,6 +97,7 @@ function GUIPassOne() {
 		});
 	
 	readyFunc = function() {
+		CompileCode();
 		if (!verified) {
 			console.log("Code unverified...Please verify code");
 			return;
