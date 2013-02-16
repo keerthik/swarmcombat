@@ -155,7 +155,7 @@ function GUIPassOne() {
 }
 
 var verified = false;
-function VerifyCode() {}
+function VerifyCode() {
 	verified = true;
 }
 function CompileCode() {
