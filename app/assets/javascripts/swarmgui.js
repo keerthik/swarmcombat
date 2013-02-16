@@ -165,7 +165,7 @@ function CompileCode() {
 	var tempCode = "";
 	units.each( function (index) {
 		tempCode += "if(" + $(this).children(".condition").val() + ")\n";
-		tempCode += "\t" + $(this).children(".action").val() + ";\nelse";
+		tempCode += "\t" + $(this).children(".action").val() + ";\n else";
 	});
 	tempCode += "{}";
 	console.log(tempCode);
