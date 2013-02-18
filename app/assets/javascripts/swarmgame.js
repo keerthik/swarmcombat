@@ -251,6 +251,7 @@ function CreateDrones() {
 			});
 		},
 
+		// Data functions
 		NearestEnemy: function () {
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
 			var closeDist = -1;
@@ -278,6 +279,27 @@ function CreateDrones() {
 			return (i<n)?enemy:false;
 		},
 
+
+		IsTakingDamage: function() {
+			return this.data.takingdamage;
+		},
+
+
+		// Macro actions
+		Retreat: function () {
+			console.log("Retreating");
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var retreatVector = {x:0, y:0};
+			for (var i = 0; i < n; i++ ) {
+				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) {
+					retreatVector.x += (enemy.data.x - this.data.x);
+					retreatVector.y += (enemy.data.y - this.data.y);
+				}
+			}
+			moveTo(this.data.x + retreatVector.x, this.data.y + retreatVector.y);
+		},
+		// Core actions
 		lookAt: function (targetPos) {
 			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
 			requiredFacing = requiredFacing.mod(2*Math.PI);
@@ -408,14 +430,6 @@ function CreateDrones() {
     		return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
     	},
     	
-    	retreat: function () {
-			var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
-			while (i < 3 && !enemy.data.alive) {
-				i++;
-				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
-			}
-    	},
-    	
 		attackcd: 0,
     	attack: function (target) {
     		this.data.attacking = false;
@@ -445,7 +459,7 @@ function CreateDrones() {
 		takeDamage: function(damage) {
 			// For animation purposes
 			this.data.takingdamage = true;
-			this.data.hitTimer = 1;
+			this.data.hitTimer = this.data.hitTimerMax;
 			// Stats
 			damage = (damage<0)?-damage:damage;
 			this.data.hp = Math.max(0, this.data.hp-damage);
