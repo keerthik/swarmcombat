@@ -66,56 +66,100 @@ function PathingGrid(drone_id) {
 			for (var j = 0; j < this.grid_width; j++)
 				this.nodes[i][j] = new Node(i,j);
 		}
+
+	    // Update state of grid by making cells occupied by drones impassable
+	    this.updateState = function() {
+	    	drones = Crafty('DroneOps');
+	    	this.resetState();
+	    	for (var iter = 0; iter < drones.length; iter++) {
+	    		if (this.drone_id != drones[iter]) {
+	    			drone = Crafty(drones[iter]);
+	    			upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x, 0),
+	    				Math.max(drone.data.y, 0));
+	    			lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + drone.w,
+	    				Crafty.viewport.width-1), 
+	    			Math.min(drone.data.y + drone.h,
+	    				Crafty.viewport.height-1));
+	    			for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
+	    				for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
+	    					this.nodes[i][j].passable = false;
+	    				}
+	    			}
+	    		}
+	    	}
+	    };  
+
+	    // Resets state of grid
+	    this.resetState = function() {
+	    	for (var i = 0; i < this.grid_height; i++) {
+	    		for (var j = 0; j < this.grid_width; j++) {
+	    			this.nodes[i][j] = new Node(i,j);
+	    		}
+	    	}
+	    };
+
+	    // Find all neighbors of a given cell
+	    this.findNeighbors = function(curr_cell) {
+	    	var i = curr_cell.i;
+	    	var j = curr_cell.j;
+	    	var neighbors = [];
+
+	    	for (var i_iter = -1; i_iter <= 1; i_iter++) {
+	    		for (var j_iter = -1; j_iter <= 1; j_iter++) {
+	    			if (this.nodes[i+i_iter] && this.nodes[i+i_iter][j+j_iter] &&
+	    				(i_iter != 0 || j_iter != 0)) {
+	    				neighbors.push(this.nodes[i+i_iter][j+j_iter]);
+	    			}
+	    		}
+	    	} 
+
+	    	return neighbors;   
+		};
+
+		this.findClosestPassableNode = function(cell) {
+			if (this.nodes[cell.i][cell.j].passable)
+				return this.nodes[cell.i][cell.j];
+			var drone_grid_pos = Crafty(this.drone_id).getGridPosition();
+			var a = [-1, 1]
+			var b = [0, -1, 1];
+			var passable_nodes = [];
+			while (a[1] < this.grid_width) {
+				for (var b_iter = 0; b_iter < b.length; b_iter++) {
+					var b_val = b[b_iter];
+					for (var a_iter = 0; a_iter < a.length; a_iter++) {
+						var a_val = a[a_iter];
+						if (this.nodes[cell.i+a_val] && this.nodes[cell.i+a_val][cell.j+b_val]) {
+							var curr_node = this.nodes[cell.i+a_val][cell.j+b_val];
+							if (curr_node.passable)
+								passable_nodes.push(curr_node);
+						}
+						if (this.nodes[cell.i+b_val] && this.nodes[cell.i+b_val][cell.j+a_val]) {
+							var curr_node = this.nodes[cell.i+b_val][cell.j+a_val];
+							if (curr_node.passable)
+								passable_nodes.push(curr_node);
+						}			
+					}
+				}
+				if (passable_nodes.length > 0) {
+					var min = 1000;
+					var res = null;
+					for (var iter = 0; iter < passable_nodes.length; iter++) {
+						var node = passable_nodes[iter];
+						var dist = Math.abs(drone_grid_pos.i-node.i) + Math.abs(drone_grid_pos.j-node.j);
+						if (dist < min) {
+							min = dist;
+							res = node;
+						}
+					}
+					return res;
+				}
+				a[0] -= 1; a[1] += 1;
+				b.push(a[0]); b.push(a[1]);
+			}
+			return false;
+		};
+
 	}
-
-    // Update state of grid by making cells occupied by drones impassable
-    this.updateState = function() {
-    	drones = Crafty('DroneOps');
-    	this.resetState();
-    	for (var iter = 0; iter < drones.length; iter++) {
-    		if (this.drone_id != drones[iter]) {
-    			drone = Crafty(drones[iter]);
-    			upper_left_cell = this.pxPos2GridPos(Math.max(drone.data.x - drone.w/4, 0),
-    				Math.max(drone.data.y - drone.h/4, 0));
-    			lower_right_cell = this.pxPos2GridPos(Math.min(drone.data.x + 1.25*drone.w,
-    				Crafty.viewport.width-1), 
-    			Math.min(drone.data.y + 1.25*drone.h,
-    				Crafty.viewport.height-1));
-    			for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
-    				for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
-    					this.nodes[i][j].passable = false;
-    				}
-    			}
-    		}
-    	}
-    };  
-
-    // Resets state of grid
-    this.resetState = function() {
-    	for (var i = 0; i < this.grid_height; i++) {
-    		for (var j = 0; j < this.grid_width; j++) {
-    			this.nodes[i][j] = new Node(i,j);
-    		}
-    	}
-    };
-
-    // Find all neighbors of a given cell
-    this.findNeighbors = function(curr_cell) {
-    	var i = curr_cell.i;
-    	var j = curr_cell.j;
-    	var neighbors = [];
-
-    	for (var i_iter = -1; i_iter <= 1; i_iter++) {
-    		for (var j_iter = -1; j_iter <= 1; j_iter++) {
-    			if (this.nodes[i+i_iter] && this.nodes[i+i_iter][j+j_iter] &&
-    				(i_iter != 0 || j_iter != 0)) {
-    				neighbors.push(this.nodes[i+i_iter][j+j_iter]);
-    		}
-    	}
-    } 
-
-    return neighbors;   
-};
 }
 
 // Test clients have servermode true
@@ -225,6 +269,8 @@ function CreateDrones() {
     	// Shortest path to current target
     	path: null,
     	grid: null,
+    	time_since_update: 0,
+    	current_move_target: null,
     });
 
 	/* 	This component should only really be active on the server, or test clients.
@@ -326,21 +372,29 @@ function CreateDrones() {
 
 		moveTo: function(target_x, target_y) {
 			var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
+			var changed_target = false;
+			if (this.data.current_move_target) {
+				var prev_target_grid_pos = Grid.pxPos2GridPos(this.data.current_move_target.x, this.data.current_move_target.y);
+				// Check for significant change in target position
+				if (Math.abs(target_grid_pos.i-prev_target_grid_pos.i) > 1 || 
+					Math.abs(target_grid_pos.j-prev_target_grid_pos.j) > 1) {
+					changed_target = true;
+				}
+			}
 			var curr_cell = this.getGridPosition();
-			if (curr_cell.i == target_grid_pos.i && curr_cell.j == target_grid_pos.j) {
-				this.data.path = null;
-	      		return true; // Already at target
-	      	}
-	      	else if (this.data.path && this.data.path.length == 0)
-				return false; // No path to target
-			if (this.data.path && (this.data.path[0].i == target_grid_pos.i && 
-				this.data.path[0].j == target_grid_pos.j)) {
+	      	if (this.data.path && this.data.path.length == 0)
+				return true; // Reached target/as close as it can get to target
+			// Update the path every second
+			if (this.data.time_since_update > 1.0) 
+				this.data.path = this.getPath(target_x, target_y);
+			if (this.data.path && this.data.path.length > 0 && !changed_target) {
+				this.data.time_since_update += timer.dt;
 				var temp_next_cell = this.data.path[this.data.path.length-1];
-			this.data.grid.updateState();
+				this.data.grid.updateState();
 				// Recalculate path if there is a collision
 				var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
 				if (!next_cell.passable) {
-					this.data.path = this.getPath(target_grid_pos);
+					this.data.path = this.getPath(target_x, target_y);
 					return false;
 				}
 				if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
@@ -356,15 +410,18 @@ function CreateDrones() {
 					return false; // Not at target yet
 				}
 			}	
-			else
-				this.data.path = this.getPath(target_grid_pos);
+			else 
+				this.data.path = this.getPath(target_x, target_y);
 			return false;
 		},
 		
-		getPath: function(target_cell) {
+		getPath: function(target_x, target_y) {
+			this.data.current_move_target = {'x': target_x, 'y': target_y};
+			this.data.time_since_update = 0;
 			var path_grid = new PathingGrid(this[0]);
 			path_grid.updateState();
 			this.data.grid = path_grid;
+			var target_cell = path_grid.findClosestPassableNode(Grid.pxPos2GridPos(target_x, target_y));
 			var open_nodes = new BinaryHeap(function(node) {
 				return node.f;
 			});
@@ -441,10 +498,11 @@ function CreateDrones() {
 			// Get in range of target
 			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
 			.distance(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange;							
-			if (!this.data.attacking) this.moveFd();
+			if (!this.data.attacking) this.moveTo(target.data.x, target.data.y);
 
-			// Turn to face target
-			this.data.attacking &= this.lookAt(this.data.targetPos);
+			// Turn to face target once in range
+			if (this.data.attacking)
+				this.data.attacking &= this.lookAt(this.data.targetPos);
 			if (!this.data.attacking) return false;
 
 			// Attacking the target
