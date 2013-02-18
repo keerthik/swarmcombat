@@ -39,7 +39,8 @@ function PathingGrid(drone_id) {
 
 	// Converts pixel position to grid cell
 	this.pxPos2GridPos = function(px_x, px_y) {
-		var i = Math.floor(px_y/this.cell_height);
+		var i = Math.max(Math.min(Math.floor(px_y/this.cell_height), this.grid_width-1), 0);
+		var j = Math.max(Math.min(Math.floor(px_x/this.cell_width), this.grid_height-1), 0);
 		var j = Math.floor(px_x/this.cell_width);
 		return { 'i': i, 'j': j };
 	};
@@ -333,7 +334,7 @@ function CreateDrones() {
 
 		// Macro actions
 		Retreat: function () {
-			console.log("Retreating");
+			//console.log("Retreating");
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
 			var retreatVector = {x:0, y:0};
 			for (var i = 0; i < n; i++ ) {
@@ -343,7 +344,7 @@ function CreateDrones() {
 					retreatVector.y += (enemy.data.y - this.data.y);
 				}
 			}
-			moveTo(this.data.x + retreatVector.x, this.data.y + retreatVector.y);
+			this.moveTo(this.data.x - retreatVector.x, this.data.y - retreatVector.y);
 		},
 		// Core actions
 		lookAt: function (targetPos) {
@@ -371,6 +372,8 @@ function CreateDrones() {
 		},
 
 		moveTo: function(target_x, target_y) {
+			target_x = Math.max(Math.min(target_x,Crafty.viewport.width-this.w),0);
+			target_y = Math.max(Math.min(target_y,Crafty.viewport.height-this.w),0);
 			var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
 			var changed_target = false;
 			if (this.data.current_move_target) {
@@ -410,8 +413,9 @@ function CreateDrones() {
 					return false; // Not at target yet
 				}
 			}	
-			else 
+			else {				
 				this.data.path = this.getPath(target_x, target_y);
+			}
 			return false;
 		},
 		
