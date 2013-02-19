@@ -7,7 +7,7 @@ gem 'rails', '3.2.11'
 
 gem 'execjs'
 gem 'libv8', 		'~> 3.11.8.13', :platform => :ruby
-gem 'therubyracer',					:platform => :ruby
+gem 'therubyracer',	'~>0.11.3',		:platform => :ruby
 gem 'pg'
 gem 'bootstrap-sass'
 gem 'devise'

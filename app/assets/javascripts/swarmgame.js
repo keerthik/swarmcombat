@@ -340,8 +340,12 @@ function CreateDrones() {
 			for (var i = 0; i < n; i++ ) {
 				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 				if (enemy.data.alive) {
-					retreatVector.x += (enemy.data.x - this.data.x);
-					retreatVector.y += (enemy.data.y - this.data.y);
+					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
+					var scaleFactor = 1000000/(1+eVector.magnitudeSq());
+					eVector.scaleToMagnitude(scaleFactor);
+					//console.log(scaleFactor)
+					retreatVector.x += (eVector.x);
+					retreatVector.y += (eVector.y);
 				}
 			}
 			this.moveTo(this.data.x - retreatVector.x, this.data.y - retreatVector.y);
@@ -540,9 +544,11 @@ function CreateDrones() {
 		},
 		_react: function () {
 			if (!executing || !this.data.alive) return;
+			
 			// 'with' allows us to drop the 'this.' in the code here
 			with (this) {
-				eval(this.data.instructions);
+				var self = jQuery.extend(true, {}, data);
+				eval(data.instructions);
 			}
 			// Death happens only at the end of a "frame", which is essentially a "turn"
 			if (this.data.hp <= 0) {
