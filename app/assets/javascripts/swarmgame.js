@@ -6,8 +6,9 @@ function RunGame() {
 	//CreateBall();
 	//CreateScoreBoards();
 
-  // Create grid
-  Grid = new PathingGrid();
+	// Create grid
+	Grid = new PathingGrid();
+	use_pathing = false;
 
 }
 
@@ -41,7 +42,6 @@ function PathingGrid(drone_id) {
 	this.pxPos2GridPos = function(px_x, px_y) {
 		var i = Math.max(Math.min(Math.floor(px_y/this.cell_height), this.grid_width-1), 0);
 		var j = Math.max(Math.min(Math.floor(px_x/this.cell_width), this.grid_height-1), 0);
-		var j = Math.floor(px_x/this.cell_width);
 		return { 'i': i, 'j': j };
 	};
 
@@ -378,49 +378,60 @@ function CreateDrones() {
 		moveTo: function(target_x, target_y) {
 			target_x = Math.max(Math.min(target_x,Crafty.viewport.width-this.w),0);
 			target_y = Math.max(Math.min(target_y,Crafty.viewport.height-this.w),0);
-			var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
-			var changed_target = false;
-			if (this.data.current_move_target) {
-				var prev_target_grid_pos = Grid.pxPos2GridPos(this.data.current_move_target.x, this.data.current_move_target.y);
-				// Check for significant change in target position
-				if (Math.abs(target_grid_pos.i-prev_target_grid_pos.i) > 1 || 
-					Math.abs(target_grid_pos.j-prev_target_grid_pos.j) > 1) {
-					changed_target = true;
+			if (use_pathing) {
+				var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
+				var changed_target = false;
+				if (this.data.current_move_target) {
+					var prev_target_grid_pos = Grid.pxPos2GridPos(this.data.current_move_target.x, this.data.current_move_target.y);
+					// Check for significant change in target position
+					if (Math.abs(target_grid_pos.i-prev_target_grid_pos.i) > 1 || 
+						Math.abs(target_grid_pos.j-prev_target_grid_pos.j) > 1) {
+						changed_target = true;
+					}
 				}
-			}
-			var curr_cell = this.getGridPosition();
-	      	if (this.data.path && this.data.path.length == 0)
-				return true; // Reached target/as close as it can get to target
-			// Update the path every second
-			if (this.data.time_since_update > 1.0) 
-				this.data.path = this.getPath(target_x, target_y);
-			if (this.data.path && this.data.path.length > 0 && !changed_target) {
-				this.data.time_since_update += timer.dt;
-				var temp_next_cell = this.data.path[this.data.path.length-1];
-				this.data.grid.updateState();
-				// Recalculate path if there is a collision
-				var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
-				if (!next_cell.passable) {
+				var curr_cell = this.getGridPosition();
+		      	if (this.data.path && this.data.path.length == 0)
+					return true; // Reached target/as close as it can get to target
+				// Update the path every second
+				if (this.data.time_since_update > 1.0) 
 					this.data.path = this.getPath(target_x, target_y);
-					return false;
+				if (this.data.path && this.data.path.length > 0 && !changed_target) {
+					this.data.time_since_update += timer.dt;
+					var temp_next_cell = this.data.path[this.data.path.length-1];
+					this.data.grid.updateState();
+					// Recalculate path if there is a collision
+					var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
+					if (!next_cell.passable) {
+						this.data.path = this.getPath(target_x, target_y);
+						return false;
+					}
+					if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
+						this.data.path.pop();
+						next_cell = this.data.path[this.data.path.length-1];
+						if (!next_cell) {
+							this.data.path = null;
+				            return true; // Reached target
+				        }
+				    }
+				    if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
+				    	this.moveFd();
+						return false; // Not at target yet
+					}
+				}	
+				else {				
+					this.data.path = this.getPath(target_x, target_y);
 				}
-				if (curr_cell.i == next_cell.i && curr_cell.j == next_cell.j) {
-					this.data.path.pop();
-					next_cell = this.data.path[this.data.path.length-1];
-					if (!next_cell) {
-						this.data.path = null;
-			            return true; // Reached target
-			        }
-			    }
-			    if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
-			    	this.moveFd();
-					return false; // Not at target yet
-				}
-			}	
-			else {				
-				this.data.path = this.getPath(target_x, target_y);
+				return false;
 			}
-			return false;
+			else {
+				var ctr_x = this.data.x + this.w/2;
+				var ctr_y = this.data.y + this.h/2;
+				if (Math.abs(target_x-ctr_x) <= 5 && Math.abs(target_y-ctr_y) <= 5)
+					return true;
+				else if (this.lookAt({'x':target_x,'y':target_y}))
+				    this.moveFd();
+				return false;
+			}
 		},
 		
 		getPath: function(target_x, target_y) {
