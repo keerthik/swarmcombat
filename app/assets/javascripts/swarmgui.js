@@ -27,7 +27,6 @@ function CreateGUI() {
 	$("#game_ui")
 	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
 
-	//GUIPassOne();
 	GUIPassOne();
 
 	$("#game_ui")
@@ -42,8 +41,8 @@ function CreateGUI() {
 function GUITest() {
 	/* TEST GUI
 	*/
-	var defaultgreen = "attack(NearestEnemy());";
-	var defaultred = "attack(NearestEnemy());";
+	var defaultgreen = "Attack(NearestEnemy());";
+	var defaultred = "Attack(NearestEnemy());";
 	$("#game_ui")
 	.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
 	$("#game_ui")
@@ -63,8 +62,8 @@ var requesting_or_returned = false;
 function GUIPassOne() {
 /* Pass one
 */
-	var defaultCondition = "data.hp > 0.5*data.maxhp";
-	var defaultAction = "attack(NearestEnemy())";
+	var defaultCondition = "self.hp > 0.5*self.maxhp";
+	var defaultAction = "Retreat()";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
 	$("#priority_queue")
@@ -79,11 +78,11 @@ function GUIPassOne() {
 		'</div>');
 	$(".add_row_up")
 		.click(function() {
-			$(this).closest($(".gui_unit")).before($("#gui_unit_0").clone(true));
+			$(this).closest($(".gui_unit")).before($(this).closest($(".gui_unit")).clone(true));
 		});
 	$(".add_row_down")
 		.click(function() {
-			$(this).closest($(".gui_unit")).after($("#gui_unit_0").clone(true));
+			$(this).closest($(".gui_unit")).after($(this).closest($(".gui_unit")).clone(true));
 		});
 	$(".move_row_up")
 		.click(function() {
@@ -131,7 +130,6 @@ function GUIPassOne() {
 		}
 
 		var opponent_deployment = function (data) {
-			//console.log(data);
 			opponentReady = test||data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
 			myCode = data['code' + me];
