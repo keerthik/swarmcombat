@@ -8,7 +8,7 @@ function RunGame() {
 
 	// Create grid
 	Grid = new PathingGrid();
-	use_pathing = false;
+	use_pathing = true;
 
 }
 
@@ -36,12 +36,13 @@ function PathingGrid(drone_id) {
 		this.f = 0;
 		this.g = 0;
 		this.h = 0;
+		this.penalty = 1;
 	}    
 
 	// Converts pixel position to grid cell
 	this.pxPos2GridPos = function(px_x, px_y) {
-		var i = Math.max(Math.min(Math.floor(px_y/this.cell_height), this.grid_width-1), 0);
-		var j = Math.max(Math.min(Math.floor(px_x/this.cell_width), this.grid_height-1), 0);
+		var i = Math.max(Math.min(Math.floor(px_y/this.cell_height), this.grid_height-1), 0);
+		var j = Math.max(Math.min(Math.floor(px_x/this.cell_width), this.grid_width-1), 0);
 		return { 'i': i, 'j': j };
 	};
 
@@ -84,6 +85,15 @@ function PathingGrid(drone_id) {
 	    			for (var i = upper_left_cell.i; i <= lower_right_cell.i; i++) {
 	    				for (var j = upper_left_cell.j; j <= lower_right_cell.j; j++) {
 	    					this.nodes[i][j].passable = false;
+	    				}
+	    			}
+	    			if (drone.data.path && drone.data.path.length > 0) {
+	    				for (var idx = drone.data.path.length-1; idx >= Math.max(drone.data.path.length-3,0); idx--) {
+	    					var used_node = drone.data.path[idx];
+	    					for (var i = Math.max(used_node.i-1,0); i <= Math.min(used_node.i+1,this.grid_height-1); i++) {
+	    						for (var j = Math.max(used_node.j-1,0); j <= Math.min(used_node.j+1,this.grid_width-1); j++)
+	    							this.nodes[i][j].penalty += 1;				
+	    					}
 	    				}
 	    			}
 	    		}
@@ -385,14 +395,18 @@ function CreateDrones() {
 						changed_target = true;
 					}
 				}
+
+				this.data.time_since_update += timer.dt;
 				var curr_cell = this.getGridPosition();
-		      	if (this.data.path && this.data.path.length == 0)
-					return true; // Reached target/as close as it can get to target
-				// Update the path every second
-				if (this.data.time_since_update > 1.0) 
+				if (target_grid_pos.i == curr_cell.i && target_grid_pos.j == curr_cell.j) {
+					return true; // Reached target
+				}
+				else if (this.data.time_since_update > 1.0)
 					this.data.path = this.getPath(target_x, target_y);
+		      	if (this.data.path && this.data.path.length == 0)
+					return false; // Cannot reach target
+				
 				if (this.data.path && this.data.path.length > 0 && !changed_target) {
-					this.data.time_since_update += timer.dt;
 					var temp_next_cell = this.data.path[this.data.path.length-1];
 					this.data.grid.updateState();
 					// Recalculate path if there is a collision
@@ -405,8 +419,7 @@ function CreateDrones() {
 						this.data.path.pop();
 						next_cell = this.data.path[this.data.path.length-1];
 						if (!next_cell) {
-							this.data.path = null;
-				            return true; // Reached target
+				            return false; // Finished path
 				        }
 				    }
 				    if (this.lookAt(Grid.gridPos2PxPos(next_cell))) {
@@ -486,7 +499,8 @@ function CreateDrones() {
 			        	neighbor.parent = curr_node;
 			        	neighbor.h = neighbor.h || path_grid.getDiagonalDistance(neighbor, end_node);
 			        	neighbor.g = g_score;
-			        	neighbor.f = neighbor.g + neighbor.h;
+			        	// Penalize nodes used in other paths
+			        	neighbor.f = (neighbor.g + neighbor.h)*(neighbor.penalty);
 
 			        	if (!visited)
 			        		open_nodes.push(neighbor);
