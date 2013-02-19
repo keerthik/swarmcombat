@@ -27,7 +27,6 @@ function CreateGUI() {
 	$("#game_ui")
 	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
 
-	//GUIPassOne();
 	GUIPassOne();
 
 	$("#game_ui")
@@ -131,7 +130,6 @@ function GUIPassOne() {
 		}
 
 		var opponent_deployment = function (data) {
-			//console.log(data);
 			opponentReady = test||data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
 			myCode = data['code' + me];
