@@ -2,6 +2,7 @@ function RunGame() {
 	Crafty.init(600, 300);
 	Crafty.background('rgba(0,0,0,100)');
 	CreateDrones();
+	InitializeGame();	
 	//CreateGUI();
 	//CreateBall();
 	//CreateScoreBoards();
@@ -216,17 +217,13 @@ function CreateDrones() {
 				drawTriangle(ctx, pos, point, this.color);
 				// Health bar
 				drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
-				// TODO: Moving animation
+				// TODO: Moving animation -- jets or some shit?
 				if (this.data.moving) {
 
 				}
-				// TODO: Attack animation
-				if (this.data.attacking) {
-					//console.log("Attacking");
-					//drawBeams(ctx, pos, point, this.data.targetPos, this.color);
-					this.gunParticles.setParams(this.color, false, pos, this.data.targetPos, this.data.facing);
-					this.gunParticles.draw(ctx, pos, timer.dt);
-				}
+				// Attack animation
+				this.gunParticles.setParams(this.color, false, pos, this.data.targetPos, this.data.facing, this.data.attacking);
+				this.gunParticles.draw(ctx, pos, timer.dt);
 				// TODO: Hit animation
 				if (this.data.takingdamage) {
 					this.data.hitTimer -= timer.dt;
@@ -344,7 +341,6 @@ function CreateDrones() {
 
 		// Macro actions
 		Retreat: function () {
-			//console.log("Retreating");
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
 			var retreatVector = {x:0, y:0};
 			for (var i = 0; i < n; i++ ) {
@@ -359,6 +355,10 @@ function CreateDrones() {
 				}
 			}
 			this.moveTo(this.data.x - retreatVector.x, this.data.y - retreatVector.y);
+		},
+
+		Regroup: function () {
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
 		},
 		// Core actions
 		lookAt: function (targetPos) {
@@ -531,7 +531,7 @@ function CreateDrones() {
     	},
     	
 		attackcd: 0,
-    	attack: function (target) {
+    	Attack: function (target) {
     		this.data.attacking = false;
     		if (!target || !target.data.alive) {
     			return false;
@@ -613,7 +613,17 @@ function CreateDrones() {
 		this.time = new Date().getTime();
 	});
 
+}
+
+function InitializeGame() {
 	// Spawn them drones
+	if (clientmode) console.log("Cleaning up");
+	
+	var gameObjects = Crafty("Tridata, Trisim, Trident, Diadata, Diasim, Diamond");
+	console.log(gameObjects);
+	gameObjects.each(function(){
+		this.destroy();
+	})
 	if (servermode) console.log("Server mode detected...Creating simulators");
 	if (clientmode) console.log("Client mode detected...Creating renderers");
 	for (var i = 0; i < 3; i++) {
@@ -637,11 +647,6 @@ function CreateDrones() {
 			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
 	}
-	if (servermode) {
-		var redops = Crafty("Diasim");
-	}
-}
-function logic_unit() {
 
 }
 //Ball
