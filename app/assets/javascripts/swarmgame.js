@@ -390,27 +390,35 @@ function CreateDrones() {
 			target_y = Math.max(Math.min(target_y,Crafty.viewport.height-this.w),0);
 			if (use_pathing) {
 				var target_grid_pos = Grid.pxPos2GridPos(target_x, target_y);
-				var changed_target = false;
 				if (this.data.current_move_target) {
 					var prev_target_grid_pos = Grid.pxPos2GridPos(this.data.current_move_target.x, this.data.current_move_target.y);
 					// Check for significant change in target position
 					if (Math.abs(target_grid_pos.i-prev_target_grid_pos.i) > 1 || 
 						Math.abs(target_grid_pos.j-prev_target_grid_pos.j) > 1) {
-						changed_target = true;
+						this.data.path = this.getPath(target_x, target_y);
 					}
 				}
 
 				this.data.time_since_update += timer.dt;
 				var curr_cell = this.getGridPosition();
-				if (target_grid_pos.i == curr_cell.i && target_grid_pos.j == curr_cell.j) {
-					return true; // Reached target
-				}
-				else if (this.data.time_since_update > 1.0)
+
+				// If null path, calculate one
+				if (this.data.path === null)
 					this.data.path = this.getPath(target_x, target_y);
-		      	if (this.data.path && this.data.path.length == 0)
-					return false; // Cannot reach target
-				
-				if (this.data.path && this.data.path.length > 0 && !changed_target) {
+
+				// Check if target has been reached
+				if ((target_grid_pos.i == curr_cell.i && target_grid_pos.j == curr_cell.j) ||
+					(this.data.current_move_target && this.data.current_move_target.reached) ||
+					(this.data.path.length == 0)) {
+					return true;
+				}
+
+				// Update path every second
+				if (this.data.time_since_update > 1.0)
+					this.data.path = this.getPath(target_x, target_y);
+
+				// Move if there is a non-zero length path
+				if (this.data.path && this.data.path.length > 0) {
 					var temp_next_cell = this.data.path[this.data.path.length-1];
 					this.data.grid.updateState();
 					// Recalculate path if there is a collision
@@ -423,6 +431,7 @@ function CreateDrones() {
 						this.data.path.pop();
 						next_cell = this.data.path[this.data.path.length-1];
 						if (!next_cell) {
+							this.data.current_move_target.reached = true;
 				            return false; // Finished path
 				        }
 				    }
@@ -431,9 +440,6 @@ function CreateDrones() {
 						return false; // Not at target yet
 					}
 				}	
-				else {				
-					this.data.path = this.getPath(target_x, target_y);
-				}
 				return false;
 			}
 			else {
@@ -448,7 +454,7 @@ function CreateDrones() {
 		},
 		
 		getPath: function(target_x, target_y) {
-			this.data.current_move_target = {'x': target_x, 'y': target_y};
+			this.data.current_move_target = {'x': target_x, 'y': target_y, 'reached': false};
 			this.data.time_since_update = 0;
 			var path_grid = new PathingGrid(this[0]);
 			path_grid.updateState();
@@ -513,7 +519,7 @@ function CreateDrones() {
 			        }
 			    }
 			}
-    		return []; // No path found
+    		return false; // No path found
     	},
 
     	getGridPosition: function() {
