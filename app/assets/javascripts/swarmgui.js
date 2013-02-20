@@ -4,7 +4,6 @@ var myCode = "";
 var theirCode = "";
 // TODO: 'me' has to be assigned on joining the game, as 0 or 1
 var me = 0;
-var test = true;
 var opponentReady = false;
 var readyFunc;
 var server = "";
@@ -25,12 +24,24 @@ function CreateGUI() {
 	getServer();
 	console.log("Making UI");
 	$("#game_ui")
+	.append('<input id="resimulate" type="button" class="btn btn-danger" value="Re-Simulate" />');
+
+	$("#game_ui")
+	.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');
+	
+	$("#game_ui")
 	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
 
 	GUIPassOne();
 
 	$("#game_ui")
 	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
+	
+	$("#resimulate")
+		.click(function(){
+			InitializeGame();
+			AssignCode();
+		});
 	
 	$(".ready")
 		.click(function(){
@@ -48,10 +59,10 @@ function GUITest() {
 	$("#game_ui")
 	.append('Red: <input type="text" id="redstruction" value="'+defaultred+'"><br>');
 	$("#game_ui")
-	.append('<input type="button" class="btn btn-primary" id="ready" value="Ready!" />');
+	.append('<input id="ready" type="button" class="btn btn-primary" value="Ready!" />');
 	
 	readyFunc = function () {
-		opponentReady = test;
+		test = $('#testMode').attr('checked')=='checked';
 		myCode = (me == 0)?$('#greenstruction').val():($('#redstruction').val());
 		theirCode = (me == 1)?$('#greenstruction').val():($('#redstruction').val());
 		PrepareExecution();
@@ -63,7 +74,7 @@ function GUIPassOne() {
 /* Pass one
 */
 	var defaultCondition = "self.hp > 0.5*self.maxhp";
-	var defaultAction = "Retreat()";
+	var defaultAction = "Attack(NearestEnemy())";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
 	$("#priority_queue")
@@ -116,6 +127,8 @@ function GUIPassOne() {
 		// TODO: Post my ready state and code to the server
 
 		function request_opponent_deployment () {
+			test = $('#testMode').attr('checked')=='checked';
+			console.log(test);
 			requesting_or_returned = true;
 			// Query the server for update after a second
 			$.doTimeout(1000, function () {
@@ -130,10 +143,11 @@ function GUIPassOne() {
 		}
 
 		var opponent_deployment = function (data) {
+			test = $('#testMode').attr('checked')=='checked';
 			opponentReady = test||data['ready'];
 			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
 			myCode = data['code' + me];
-			theirCode = test?myCode:data['code' + (1-me)];
+			theirCode = test?'Retreat();':data['code' + (1-me)];
 			// Let the games begin!
 			if (opponentReady) {
 				// Assign code to all drones

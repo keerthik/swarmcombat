@@ -77,12 +77,12 @@ function particle()
 function sprayParticle()
 {
 
-	this.setDirection = function (facing) {
+	this.setDirection = function (facing, firing) {
 		var speed = 250;
 		var vector = drxnVector(facing, speed);
 		//Lets add random velocity to each particle
-		this.vx = vector.x + Math.random()*.05*speed-.025*speed;
-		this.vy = vector.y + Math.random()*.05*speed-.025*speed;
+		this.vx = firing?vector.x + Math.random()*.05*speed-.025*speed:0;
+		this.vy = firing?vector.y + Math.random()*.05*speed-.025*speed:0;
 	};
 
 	this.x = 0;
@@ -120,7 +120,7 @@ function ParticleSystem(count, bounds, spray) {
 		}
 	};
 	this.init();
-	this.setParams = function (color, once, pos, target, facing) {
+	this.setParams = function (color, once, pos, target, facing, firing) {
 		// Set custom color, 0 for randomized
 		if (color != 0 && typeof color != "undefined") {
 			for (var i = 0; i < this.particles.length; i++) {
@@ -137,7 +137,7 @@ function ParticleSystem(count, bounds, spray) {
 				p.y = 0;
 			}
 			if (p.x == 0 && p.y == 0) {
-				p.setDirection(facing);
+				p.setDirection(facing, firing);
 			}
 		}
 	};
