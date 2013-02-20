@@ -452,6 +452,10 @@ function CreateDrones() {
 				return false;
 			}
 		},
+
+		moveTowardsUnit: function(drone) {
+			this.moveTo(drone.data.x+drone.w/2, drone.data.y+drone.h/2);
+		},
 		
 		getPath: function(target_x, target_y) {
 			this.data.current_move_target = {'x': target_x, 'y': target_y, 'reached': false};
