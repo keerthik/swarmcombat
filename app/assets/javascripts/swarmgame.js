@@ -347,9 +347,9 @@ function CreateDrones() {
 				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 				if (enemy.data.alive) {
 					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
+					// Each enemy contributes inversely proportional to his distance from the unit
 					var scaleFactor = 1000000/(1+eVector.magnitudeSq());
 					eVector.scaleToMagnitude(scaleFactor);
-					//console.log(scaleFactor)
 					retreatVector.x += (eVector.x);
 					retreatVector.y += (eVector.y);
 				}
@@ -374,6 +374,7 @@ function CreateDrones() {
 			this.moveTo(destination.x, destination.y);
 		},
 
+		// Sensing functions
 		EnemiesInRadius: function(r) {
 			var nEnemies = 0;
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
@@ -388,18 +389,48 @@ function CreateDrones() {
 			return nEnemies;
 		},
 
-		Regroup: function () {
+		AlliesInRadius: function (r) {
 			var nAllies = 0;
 			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
 			var destination = {x:0, y:0};
 			for (var i = 0; i < n; i++) {
 				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
 				if (ally.data != this.data && ally.data.alive) {
-					var eVector = new Crafty.math.Vector2D(ally.data.x - this.data.x, ally.data.y - this.data.y);
-					if (eVector.magnitudeSq() < r*r) nAllies++;
+					var aVector = new Crafty.math.Vector2D(ally.data.x - this.data.x, ally.data.y - this.data.y);
+					if (aVector.magnitudeSq() < r*r) nAllies++;
 				}
 			}
+			return nAllies;
 		},
+		
+		EnemiesLeft: function () {
+			var nEnemies = 0;
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var retreatVector = {x:0, y:0};
+			for (var i = 0; i < n; i++ ) {
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) nEnemies++;
+			}
+			return nEnemies;			
+		},
+
+		AlliesLeft: function () {
+			var nAllies = 0;
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var destination = {x:0, y:0};
+			for (var i = 0; i < n; i++) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally.data != this.data && ally.data.alive) nAllies++;
+			}
+			return nAllies;
+		},
+
+		DistanceToUnit: function(unit) {
+			if (!unit) return false;
+			return (new Crafty.math.Vector2D(this.data.x, this.data.y)
+					.distance(new Crafty.math.Vector2D(unit.data.x, unit.data.y)));
+		},
+
 		// Core actions
 		lookAt: function (targetPos) {
 			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
@@ -580,7 +611,7 @@ function CreateDrones() {
 
 			// Get in range of target
 			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
-			.distance(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange;							
+			.distanceSq(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange*this.data.attackrange;	
 			if (!this.data.attacking) this.moveTo(target.data.x, target.data.y);
 
 			// Turn to face target once in range
@@ -660,7 +691,6 @@ function InitializeGame() {
 	if (clientmode) console.log("Cleaning up");
 	
 	var gameObjects = Crafty("Tridata, Trisim, Trident, Diadata, Diasim, Diamond");
-	console.log(gameObjects);
 	gameObjects.each(function(){
 		this.destroy();
 	})
