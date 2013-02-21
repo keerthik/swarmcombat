@@ -344,7 +344,7 @@ function CreateDrones() {
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
 			var retreatVector = {x:0, y:0};
 			for (var i = 0; i < n; i++ ) {
-				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 				if (enemy.data.alive) {
 					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
 					var scaleFactor = 1000000/(1+eVector.magnitudeSq());
@@ -359,6 +359,46 @@ function CreateDrones() {
 
 		Regroup: function () {
 			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var nAllies = 0;
+			var destination = {x:0, y:0};
+			for (var i = 0; i < n; i++) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally.data != this.data && ally.data.alive) {
+					nAllies++;
+					destination.x += ally.data.x;
+					destination.y += ally.data.y;
+				}
+			}
+			destination.x /= nAllies;
+			destination.y /= nAllies;
+			this.moveTo(destination.x, destination.y);
+		},
+
+		EnemiesInRadius: function(r) {
+			var nEnemies = 0;
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var retreatVector = {x:0, y:0};
+			for (var i = 0; i < n; i++ ) {
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) {
+					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
+					if (eVector.magnitudeSq() < r*r) nEnemies++;
+				}
+			}
+			return nEnemies;
+		},
+
+		Regroup: function () {
+			var nAllies = 0;
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var destination = {x:0, y:0};
+			for (var i = 0; i < n; i++) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally.data != this.data && ally.data.alive) {
+					var eVector = new Crafty.math.Vector2D(ally.data.x - this.data.x, ally.data.y - this.data.y);
+					if (eVector.magnitudeSq() < r*r) nAllies++;
+				}
+			}
 		},
 		// Core actions
 		lookAt: function (targetPos) {
