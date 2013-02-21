@@ -322,6 +322,23 @@ function CreateDrones() {
 			return (closeDist!=-1)?closeEnemy:false;
 		},
 
+		NearestAlly: function () {
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var closeDist = -1;
+			var closeAlly;
+			for (var i = 0; i < n; i++ ) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally[0] == this[0]) continue;
+				if (ally.data.alive) {
+					var thisDist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(ally.data.x, ally.data.y))
+					closeAlly = (closeDist==-1||thisDist<closeDist)?ally:closeAlly;
+					closeDist = (closeDist==-1||thisDist<closeDist)?thisDist:closeDist;
+				}
+			}
+			return (closeDist!=-1)?closeAlly:false;
+		},
+
 		FirstLiveEnemy: function () {
 			var i = 0;
 			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
@@ -331,6 +348,65 @@ function CreateDrones() {
 				enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
 			}
 			return (i<n)?enemy:false;
+		},
+
+		FirstLiveAlly: function () {
+			var i = 0;
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+			while (i < n && (!ally.data.alive || ally[0] == this[0])) {
+				i++;
+				ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+			}
+			return (i<n)?ally:false;
+		},
+
+		WeakestEnemy: function() {
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var lowHp = this.data.maxhp * 1000; //arbitrarily high starting hp
+			var weakEnemy = false;
+			for (var i = 0; i < n; i++ ) {
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) {
+					if (enemy.data.hp < lowHp) {
+						lowHp = enemy.data.hp
+						weakEnemy = enemy;
+					}
+					else if (enemy.data.hp == lowHp) {
+						// Choose closer enemy if HP is equal
+						var curr_dist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(enemy.data.x, enemy.data.y));
+						var prev_dist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(weakEnemy.data.x, weakEnemy.data.y));
+						weakEnemy = (curr_dist < prev_dist)?enemy:weakEnemy;
+					}
+				}
+			}
+			return weakEnemy;
+		},
+
+		WeakestAlly: function() {
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var lowHp = this.data.maxhp * 1000; //arbitrarily high starting hp
+			var weakAlly = false;
+			for (var i = 0; i < n; i++ ) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally.data.alive && ally[0] != this[0]) {
+					if (ally.data.hp < lowHp) {
+						lowHp = ally.data.hp
+						weakAlly = ally;
+					}
+					else if (ally.data.hp == lowHp) {
+						// Choose closer ally if HP is equal
+						var curr_dist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(ally.data.x, ally.data.y));
+						var prev_dist = new Crafty.math.Vector2D(this.data.x, this.data.y)
+									.distanceSq(new Crafty.math.Vector2D(weakAlly.data.x, weakAlly.data.y));
+						weakAlly = (curr_dist < prev_dist)?ally:weakAlly;
+					}
+				}
+			}
+			return weakAlly;
 		},
 
 
