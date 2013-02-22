@@ -184,6 +184,12 @@ function CompileCode() {
 	myCode = tempCode;
 }
 
+function DecompileCode(code) {
+	var stuff = code.split("if (");
+	
+	//var units = $("#priority_queue").children(".gui_unit");
+
+}
 
 function AssignCode() {
 	Crafty("Trisim").each(function(){

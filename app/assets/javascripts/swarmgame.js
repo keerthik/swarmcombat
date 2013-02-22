@@ -463,7 +463,7 @@ function CreateDrones() {
 			}
 			return nEnemies;
 		},
-
+		
 		Regroup: function () {
 			var nAllies = 0;
 			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
