@@ -4,10 +4,13 @@ var myCode = "";
 var theirCode = "";
 // TODO: 'me' has to be assigned on joining the game, as 0 or 1
 var me = 0;
+var current_code = null;
 var opponentReady = false;
 var readyFunc;
 var server = "";
 var gameserver = "";
+var check_ready = setInterval(checkReady,5000);
+var spectating = false;
 
 function getServer() {
 	server = (document.URL).split('/games')[0];
@@ -16,31 +19,47 @@ function getServer() {
 		server = "";
 		return;
 	}
-	gameserver = document.URL;
-	console.log(server);
+	gameserver = (!spectating)?document.URL:(document.URL).split('/watch')[0];
+	//console.log(server);
 }
 
 function CreateGUI() {
 	getServer();
 	console.log("Making UI");
 	$("#game_ui")
-	.append('<input id="resimulate" type="button" class="btn btn-danger" value="Re-Simulate" />');
+	.append('<input id="simulate" type="button" class="btn btn-large btn-success disabled" value="Simulate" />');
 
-	$("#game_ui")
-	.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');
-	
-	$("#game_ui")
-	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
+	checkReady();
+	if (!spectating) {
+		$("#game_ui")
+		.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');
 
-	GUIPassOne();
+		GUIPassOne();
 
-	$("#game_ui")
-	.append('<input type="button" class="btn btn-primary ready" value="Ready!" />');
-	
-	$("#resimulate")
+		$("#game_ui")
+		.append('<input type="button" class="btn btn-primary ready" value="Send Instructions" />');
+	}
+
+	var simulating = false;
+	$("#simulate")
 		.click(function(){
-			InitializeGame();
-			AssignCode();
+			if (!simulating) {
+				simulating = true;
+				InitializeGame();
+				$.get(gameserver+'/get_code', function(data) {
+					if (spectating) {
+						myCode = data['code0'];
+						theirCode = data['code1'];
+					}
+					else {
+						test = $('#testMode').attr('checked')=='checked';
+						myCode = data['code' + me];
+						theirCode = test?'Retreat();':data['code' + (1-me)];
+					}
+					AssignCode();
+					PrepareExecution();
+				});
+			}
 		});
 	
 	$(".ready")
@@ -73,20 +92,34 @@ var requesting_or_returned = false;
 function GUIPassOne() {
 /* Pass one
 */
+	var condition_re = /\/\*cond\*\/(.+?)\/\*cond\*\//g;
+	var conditions = [];
+	var temp;
+	while(temp = condition_re.exec(current_code)) {
+		conditions.push(temp[1]);
+	}
+
+	var action_re = /\/\*act\*\/(.+?)\/\*act\*\//g;
+	var actions = [];
+	while(temp = action_re.exec(current_code)) {
+		actions.push(temp[1]);
+	}
+
 	var defaultCondition = "self.hp > 0.5*self.maxhp";
 	var defaultAction = "Attack(NearestEnemy())";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
-	$("#priority_queue")
-	.append(
-		'<div id="gui_unit_0" class="gui_unit">' +
-			'<input type="button" class="btn move_row_up" value="^" />' +
-			'<input type="button" class="btn add_row_up" value="^ +" />' +
-			'  <input type="text" class="condition" value="'+defaultCondition+'">  ' +
-			'  <input type="text" class="action" value="'+defaultAction+'">  ' +
-			'<input type="button" class="btn add_row_down" value="+ v" />' +
-			'<input type="button" class="btn move_row_down" value="v" />' +
-		'</div>');
+	if (actions.length > 0) {
+		for (var i = 0; i < actions.length; i++) {
+			if (conditions[i])
+				addGUIUnit(conditions[i], actions[i]);
+			else
+				addGUIUnit("", actions[i]);
+		}
+
+	}
+	else
+		addGUIUnit(defaultCondition, defaultAction);
 	$(".add_row_up")
 		.click(function() {
 			$(this).closest($(".gui_unit")).before($(this).closest($(".gui_unit")).clone(true));
@@ -125,8 +158,21 @@ function GUIPassOne() {
 		// TODO: Determine actual game number (from the URL?)
 		var addr = [gameserver, 'ready'].join('/');
 		// TODO: Post my ready state and code to the server
+		$.get(addr, 
+			{pid: me, format: 'json', mycode: myCode}, 
+			function(data) {
+				alert("Instructions Sent!");
+				if (data['ready']) {
+					$("#simulate").attr('class', 'btn btn-large btn-success');
+					clearInterval(check_ready);
+				}
+			})
+		.error(function() {
+			requesting_or_returned = false;
+			alert("Unable to Connect to Server...Try Again");
+		});
 
-		function request_opponent_deployment () {
+		/*function request_opponent_deployment () {
 			test = $('#testMode').attr('checked')=='checked';
 			console.log(test);
 			requesting_or_returned = true;
@@ -162,9 +208,32 @@ function GUIPassOne() {
 			}
 		}
 		// Get opponent code and ready state from the server
-		request_opponent_deployment();
+		request_opponent_deployment();*/
 	};
 
+}
+
+function addGUIUnit(condition, action) {
+	$("#priority_queue")
+	.append(
+		'<div id="gui_unit_0" class="gui_unit">' +
+			'<input type="button" class="btn move_row_up" value="^" />' +
+			'<input type="button" class="btn add_row_up" value="^ +" />' +
+			'  <input type="text" class="condition" value="'+condition+'">  ' +
+			'  <input type="text" class="action" value="'+action+'">  ' +
+			'<input type="button" class="btn add_row_down" value="+ v" />' +
+			'<input type="button" class="btn move_row_down" value="v" />' +
+		'</div>');
+}
+
+function checkReady() {
+	getServer();
+	$.get(gameserver+'/is_ready', function(data) {
+		if (data['ready']) {
+			$("#simulate").attr('class', 'btn btn-large btn-success');
+			clearInterval(check_ready);
+		}
+	});
 }
 
 var verified = false;
@@ -176,8 +245,8 @@ function CompileCode() {
 	var units = $("#priority_queue").children(".gui_unit");
 	var tempCode = "";
 	units.each( function (index) {
-		tempCode += "if (" + $(this).children(".condition").val() + ")\n";
-		tempCode += "\t" + $(this).children(".action").val() + ";\n else ";
+		tempCode += "if (/*cond*/" + $(this).children(".condition").val() + "/*cond*/) ";
+		tempCode += "/*act*/" + $(this).children(".action").val() + "/*act*/; else ";
 	});
 	tempCode += "{ }";
 	console.log(tempCode);

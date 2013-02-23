@@ -16,9 +16,11 @@
   <h1><%= @game.name %></h1>
   <h2>You are 
     <% if @game.player0 == current_user.username %> <span style='color:green'>Green</span>
-    <script>me = 0;</script><% else %>
+    <script>me = 0;
+      <% if !@game.code0.nil? %>current_code = "<%= @game.code0 %>";<% end %></script><% else %>
     <% if @game.player1 == current_user.username %> <span style='color:red'>Red</span> 
-    <script>me = 1;</script><% else %> spectating 
+    <script>me = 1;
+      <% if !@game.code1.nil? %>current_code = "<%= @game.code1 %>";<% end %></script><% else %> spectating 
     <script>me = -1;</script><% end %><% end %>
   </h2>
   <div id="cr-stage">

@@ -4,8 +4,8 @@
     <tr>
       <th>Game Name</th>
       <th>Time Created</th>
-      <th>Player 0</th>
       <th>Player 1</th>
+      <th>Player 2</th>
       <th>Joinable </th>
     </tr>
   </thead>
@@ -26,14 +26,16 @@
         <% if current_user != nil %>
           <% if current_user.username == game.player0 or \
               current_user.username == game.player1 %>
-            <%= link_to 'Resume Game', game, :class => "btn" %>
+            <%= link_to 'Resume', game, :class => "btn btn-success" %>
+          <% elsif game.player1 == nil %>
+            <%= link_to 'Join', game, :class => "btn btn-success" %>
+          <% elsif (!game.code0.nil? and !game.code1.nil?) %>
+            <%= link_to 'Watch', game_path(game)+'/watch', :class => "btn btn-info" %>
           <% else %>
-            <% if game.player1 == nil %>
-              <%= link_to 'Join Game', game, :class => "btn" %>
-            <% else %>
-              *Game full!*
-            <% end %>
+            *Game full!*
           <% end %>
+        <% elsif (!game.code0.nil? and !game.code1.nil?) %>
+          <%= link_to 'Watch', game_path(game)+'/watch', :class => "btn btn-info" %>
         <% else %>
           Sign in!
         <% end %>
@@ -41,7 +43,7 @@
     </tr>
     <% end %>
     <% if @games.empty? %>
-      <tr><td colspan="2">No games are currently open.</td></tr>
+      <tr><td colspan="5">No games are currently open.</td></tr>
     <% end %>
   </tbody>
 </table>

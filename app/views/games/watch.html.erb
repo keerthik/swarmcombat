@@ -1,0 +1,28 @@
+<% content_for :head do %>
+  <!--Load up them libraries-->
+  <script src="http://craftyjs.com/release/0.5.3/crafty.js" type="text/javascript"></script>
+  <script> if (typeof(Crafty) == "undefined") document.write('<script src="/assets/backup/crafty-release.js">\x3C/script>')</script>
+  <script src="http://github.com/cowboy/jquery-dotimeout/raw/v1.0/jquery.ba-dotimeout.js"></script>
+  <script> if (typeof($.doTimeout) != "function") document.write('<script src="/assets/backup/jquery.ba-dotimeout.js">\x3C/script>')</script>
+  <!-- Include game javascript file -->
+  <%= javascript_include_tag "BinaryHeap" %>
+  <%= javascript_include_tag "xengine" %>
+  <%= javascript_include_tag "swarmgame" %>
+  <%= javascript_include_tag "swarmgui" %>
+
+
+<% end %>
+<div id="game_box">
+  <h1><%= @game.name %></h1>
+  <div id="cr-stage">
+    <script type="text/javascript">
+      RunGame();
+    </script>
+  </div>
+  <div id="game_ui">
+    <script type="text/javascript">
+      spectating = true;
+      CreateGUI();
+    </script>
+  </div>
+</div>

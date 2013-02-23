@@ -1,5 +1,5 @@
 class GamesController < ApplicationController
-  before_filter :authenticate_user!, :except => [:index]
+  before_filter :authenticate_user!, :except => [:index, :watch, :is_ready, :get_code]
 
   def index
     @games = Game.all
@@ -17,6 +17,10 @@ class GamesController < ApplicationController
     else
       # Welcome player 0
     end
+  end
+
+  def watch
+    @game = Game.find(params[:id])
   end
 
   def new
@@ -68,6 +72,19 @@ class GamesController < ApplicationController
       format.json { render json: @response.to_json }
     end
 
+  end
+
+  def get_code
+    @game = Game.find(params[:id])
+    res = {:code0 => @game.code0, :code1 => @game.code1}
+    render :json => res
+  end 
+
+  def is_ready
+    @game = Game.find(params[:id])
+    ready = (!@game.code0.nil? and !@game.code1.nil?)
+    res = {:ready => ready}
+    render :json => res
   end
 
   # For development only. Games should eventually be automatically deleted

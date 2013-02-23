@@ -8,9 +8,13 @@ Swarmcombat::Application.routes.draw do
   resources :orders
 
   match '/games/delete_all_games', :controller => 'games', :action => 'delete_all_games'
+  #match '/games/is_ready', :controller => 'games', :action => 'is_ready'
   resources :games do
     member do
       get 'ready'
+      get 'is_ready'
+      get 'get_code'
+      get 'watch'
     end
   end
 
