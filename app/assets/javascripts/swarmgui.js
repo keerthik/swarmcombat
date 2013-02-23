@@ -2,7 +2,7 @@
 
 var myCode = "";
 var theirCode = "";
-// TODO: 'me' has to be assigned on joining the game, as 0 or 1
+// 'me' has to be assigned on joining the game, as 0 or 1. This is done by the rails game/show.html.erb
 var me = 0;
 var current_code = null;
 var opponentReady = false;

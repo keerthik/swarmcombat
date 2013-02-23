@@ -19,6 +19,7 @@ Swarmcombat::Application.routes.draw do
   end
 
   get "home/index"
+  match '/api' => 'application#api'
   #get "orders/index"
 
   # The priority is based upon order of creation:

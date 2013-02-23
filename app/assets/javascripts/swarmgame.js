@@ -508,6 +508,10 @@ function CreateDrones() {
 		},
 
 		// Core actions
+		LookAt: function (target_x, target_y) {
+			return this.lookAt({x: target_x, y: target_y});
+		},
+		
 		lookAt: function (targetPos) {
 			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
 			requiredFacing = requiredFacing.mod(2*Math.PI);
