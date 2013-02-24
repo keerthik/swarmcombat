@@ -113,7 +113,7 @@ var docs = {
 		format: 'value',
 		type: 'boolean',
 		docstring: 'True if this drone has taken damage from the enemy in the last 2 simulation frames',
-		code: '',
+		code: 'IsTakingDamage()',
 	},
 
 	EnemiesInRadius: {

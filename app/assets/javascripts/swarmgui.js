@@ -13,6 +13,7 @@ var gameserver = "";
 var check_ready = setInterval(checkReady,5000);
 var spectating = false;
 var gui_mode = true;
+var link_counter = 0;
 
 function getServer() {
 	server = (document.URL).split('/games')[0];
@@ -382,8 +383,23 @@ function addGuideUnit(condition, action) {
 function selectItem(element) {
 	var select_options = [];
 	if (element.text == "(Boolean)") {
-		select_options.push("==");
+		select_options = ["==", ">", "<", ">=", "<="];
+		for (var key in docs) {
+			if (docs.hasOwnProperty(key) && docs[key]['type'] == "boolean")
+				select_options.push(key);
+		}
 	}
+
+	var options_string = "";
+	for (var i = 0; i < select_options.length; i++) {
+		options_string += "<option>" + select_options[i] + "</option>";
+	}
+	$(element).removeAttr("href");
+	$(element).removeAttr("onClick");
+	$(element).prepend('<div class="pop-up code"><span class="value">drone</span>' +
+				'<select>' +
+					options_string +
+				'<select></div>');
 }
 
 function checkReady() {
