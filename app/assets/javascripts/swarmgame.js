@@ -788,7 +788,6 @@ var liveGreen;
 var liveRed;
 var maxGameLength = 180000; // 3 minutes
 function HasGameEnded() {
-	console.log((timer.time-timer.starttime));
 	return (liveGreen == 0 || liveRed == 0 || (timer.time-timer.starttime) > maxGameLength)
 }
 
