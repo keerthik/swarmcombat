@@ -55,6 +55,9 @@ class GamesController < ApplicationController
       if (current_user.username == @game[:player0])
         code0 = validate_code(incode);
         @game.update_attributes(:code0 => code0)
+        if (params[:markedcode])
+          @game.update_attributes(:marked_code0 => params[:markedcode])
+        end
       else
         #Do something about unverified game
       end
@@ -62,6 +65,9 @@ class GamesController < ApplicationController
       if (current_user.username == @game[:player1])
         code1 = validate_code(incode);
         @game.update_attributes(:code1 => code1)
+        if (params[:markedcode])
+          @game.update_attributes(:marked_code1 => params[:markedcode])
+        end
       else
         #Similarly, unverified game
       end

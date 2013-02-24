@@ -2,14 +2,14 @@ var docs = {
 	// Macro actions
 	Retreat: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		docstring: 'The drone will try to maneuver away from all the enemy units, giving priority to evading the closest enemies',
 		code: '',
 	},
 
 	Regroup: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		docstring: 'The drone will try to maneuver towards the general location of its allies',
 		code: '',
 	},
@@ -17,7 +17,7 @@ var docs = {
 	// Core actions
 	Attack: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		parametric: true,
 		parameters: ['drone'],
 		docstring: 'The drone will attempt to attack the target drone.\n If the target is not in range, the drone will try to maneauver into range first',
@@ -26,7 +26,7 @@ var docs = {
 
 	moveTowardsUnit: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		parametric: true,
 		parameters: ['drone'],
 		docstring: 'The drone will maneuver towards the target drone',
@@ -35,7 +35,7 @@ var docs = {
 	
 	LookAt: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		parametric: true,
 		parameters: ['number', 'number'],
 		docstring: 'The drone will rotate to face the target location',
@@ -44,7 +44,7 @@ var docs = {
 
 	moveTo: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		parametric: true,
 		parameters: ['number', 'number'],
 		docstring: 'The drone will maneuver towards the target location',
@@ -53,7 +53,7 @@ var docs = {
 
 	moveFd: {
 		format: 'action',
-		type: '',
+		type: 'action',
 		docstring: 'The drone will advance in the direction it is facing, within pathing constraints',
 		code: '',
 	},
@@ -62,6 +62,20 @@ var docs = {
 		format: 'value',
 		type: 'drone.data',
 		docstring: 'Use this to access the data members of this drone',
+		code: '',
+	},
+
+	self_hp: {
+		format: 'value',
+		type: 'number',
+		docstring: 'Current hit points of the drone',
+		code: '',
+	},
+
+	self_maxhp: {
+		format: 'value',
+		type: 'number',
+		docstring: 'Maximum hit points of the drone',
 		code: '',
 	},
 

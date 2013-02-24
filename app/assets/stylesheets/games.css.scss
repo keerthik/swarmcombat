@@ -61,9 +61,14 @@ h2
 
 .gui_well
 {
-	width: 40%;
+	width: 41%;
 	padding: 10px;
 	display: table-cell;
+}
+
+.arg_link
+{
+	display: inline;
 }
 
 a.invalid
@@ -81,7 +86,16 @@ input.condition:focus{
 	background-color: #aaf;
 }
 
-.action
+input.num_field {
+	width: 10%;
+	margin: 10px;
+}
+
+#num_ctrl {
+	display: inline;
+}
+
+input.action
 {
 	margin-top: 10px;
 }

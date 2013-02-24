@@ -572,7 +572,7 @@ function CreateDrones() {
 				// Move if there is a non-zero length path
 				if (this.data.path && this.data.path.length > 0) {
 					var temp_next_cell = this.data.path[this.data.path.length-1];
-					this.data.grid.updateState();
+					//this.data.grid.updateState();
 					// Recalculate path if there is a collision
 					var next_cell = this.data.grid.nodes[temp_next_cell.i][temp_next_cell.j];
 					if (!next_cell.passable) {

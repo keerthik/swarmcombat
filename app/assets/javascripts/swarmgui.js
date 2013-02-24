@@ -2,6 +2,7 @@
 
 var myCode = "";
 var theirCode = "";
+var markedCode = "";
 // 'me' has to be assigned on joining the game, as 0 or 1. This is done by the rails game/show.html.erb
 var me = 0;
 var current_code = null;
@@ -14,6 +15,9 @@ var check_ready = setInterval(checkReady,5000);
 var spectating = false;
 var gui_mode = true;
 var link_counter = 0;
+
+var invalid_link = "<a href='javascript:void(0);' class='gui_link invalid' onClick='selectItem(this);'>"
+var valid_link = "<a href='javascript:void(0);' class='gui_link valid' onClick='selectItem(this);'>"
 
 function getServer() {
 	server = (document.URL).split('/games')[0];
@@ -41,8 +45,9 @@ function CreateGUI() {
 	
 	checkReady();
 	if (!spectating) {
-		$("#game_ui")
-		.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');
+		/*$("#game_ui")
+		.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');*/
+		$('#game_ui').append('<br/><br/>');
 
 		if (gui_mode) {
 			GuideGUI();
@@ -173,7 +178,7 @@ function GUIPassOne() {
 		requesting_or_returned = true;
 		var addr = [gameserver, 'ready'].join('/');
 		// TODO: Post my ready state and code to the server
-		$.get(addr, 
+		$.post(addr, 
 			{pid: me, format: 'json', mycode: myCode}, 
 			function(data) {
 				alert("Instructions Sent!");
@@ -230,8 +235,7 @@ function GUIPassOne() {
 }
 
 function GuideGUI() {
-/* Pass one
-*/
+	console.log(current_marked_code);
 	var condition_re = /\/\*cond\*\/(.+?)\/\*cond\*\//g;
 	var conditions = [];
 	var temp;
@@ -245,8 +249,8 @@ function GuideGUI() {
 		actions.push(temp[1]);
 	}
 
-	var defaultCondition = "<a href='javascript:void(0);' class='invalid' onClick='selectItem(this);'>(Boolean)</a>";
-	var defaultAction = "<a href='javascript:void(0);' class='invalid' onClick='selectItem(this);'>(Action)</a>";
+	var defaultCondition = "<div class='condition outer_link'>"+invalid_link+"(Boolean)</a></div>";
+	var defaultAction = "<div class='action outer_link'>"+invalid_link+"(Action)</a></div>";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
 	if (actions.length > 0) {
@@ -298,8 +302,8 @@ function GuideGUI() {
 		// TODO: Determine actual game number (from the URL?)
 		var addr = [gameserver, 'ready'].join('/');
 		// TODO: Post my ready state and code to the server
-		/*$.get(addr, 
-			{pid: me, format: 'json', mycode: myCode}, 
+		$.post(addr, 
+			{pid: me, format: 'json', mycode: myCode, markedcode: markedCode}, 
 			function(data) {
 				alert("Instructions Sent!");
 				if (data['ready']) {
@@ -311,7 +315,7 @@ function GuideGUI() {
 		.error(function() {
 			requesting_or_returned = false;
 			alert("Unable to Connect to Server...Try Again");
-		});*/
+		});
 
 		/*function request_opponent_deployment () {
 			test = $('#testMode').attr('checked')=='checked';
@@ -382,24 +386,140 @@ function addGuideUnit(condition, action) {
 
 function selectItem(element) {
 	var select_options = [];
-	if (element.text == "(Boolean)") {
-		select_options = ["==", ">", "<", ">=", "<="];
-		for (var key in docs) {
-			if (docs.hasOwnProperty(key) && docs[key]['type'] == "boolean")
-				select_options.push(key);
-		}
+	var type;
+	var format;
+	var comp_ops = ["==", ">", "<", ">=", "<="];
+	var arith_ops = ["+", "-", "*", "/"];
+	var num_field = "";
+
+	if (element.text == "(Boolean)" || comp_ops.indexOf(element.text) > -1 || 
+		(docs[element.text] && docs[element.text]['type'] == "boolean")) {
+		type = "boolean";
+		select_options = comp_ops;
+	}
+	else if (element.text == "(Number)" || arith_ops.indexOf(element.text) > -1 || 
+		(docs[element.text] && docs[element.text]['type'] == "number") || !isNaN(element.text) ||
+		element.text == "self.hp" || element.text == "self.maxhp") {
+		type = "number";
+		select_options = arith_ops;
+		num_field += "<div id='num_ctrl' class='control-group'><input id='num_field' " +
+			"type='text' class='num_field' /></div>";
+	}
+	else if (element.text == "(Drone)" || (docs[element.text] && docs[element.text]['type'] == "drone")) {
+		type = "drone";
+	}
+	else if (element.text == "(Action)" || (docs[element.text] && docs[element.text]['type'] == "action")) {
+		type = "action";
+	}
+
+	for (var key in docs) {
+		if (docs.hasOwnProperty(key) && docs[key]['type'] == type)
+			select_options.push(key);
 	}
 
 	var options_string = "";
 	for (var i = 0; i < select_options.length; i++) {
-		options_string += "<option>" + select_options[i] + "</option>";
+		options_string += "<option value='" + select_options[i] + "'>" + select_options[i] + "</option>";
 	}
 	$(element).removeAttr("href");
 	$(element).removeAttr("onClick");
-	$(element).prepend('<div class="pop-up code"><span class="value">drone</span>' +
-				'<select>' +
+	$(element).prepend('<div id="guide_popup" class="pop-up code">'+
+				'<span class="value">'+type+'</span>' +
+				'<select onchange="insertItem(this);">' +
+					'<option value=""></option>' +
 					options_string +
-				'<select></div>');
+				'<select>'+num_field+'</div>');
+	if (num_field)
+		$("#num_field").keydown(processNumericalInput);
+}
+
+function insertItem(element) {
+	var comp_ops = ["==", ">", "<", ">=", "<="];
+	var arith_ops = ["+", "-", "*", "/"];
+	var select_val = element.value;
+	var curr_link = $(element).parents(".gui_link");
+	var parent = curr_link.parent();
+	$(element).parents(".pop-up").remove();
+	if (comp_ops.indexOf(curr_link.text()) > -1) {
+		parent = curr_link.parents(".comp_link");
+		curr_link = null;
+	}
+	else if (arith_ops.indexOf(curr_link.text()) > -1) {
+		parent = $(curr_link.parents(".arith_link")[0]);
+		curr_link = null;
+	}
+	else if (parent.attr("class") == "arg_link")
+		curr_link = null;
+
+	if (comp_ops.indexOf(select_val) > -1) {
+		if (curr_link)
+			curr_link.replaceWith("<div class='gui_container comp_link'>"+invalid_link+"(Number)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Number)</a></div>");
+		else
+			parent.replaceWith("<div class='gui_container comp_link'>"+invalid_link+"(Number)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Number)</a></div>");
+	}
+	else if (arith_ops.indexOf(select_val) > -1) {
+		if (curr_link)
+			curr_link.replaceWith("<div class='gui_container arith_link'>("+invalid_link+"(Number)</a>"+
+				valid_link+select_val+"</a>"+invalid_link+"(Number)</a>)</div>");
+		else
+			parent.replaceWith("<div class='gui_container arith_link'>("+invalid_link+"(Number)</a>"+
+				valid_link+select_val+"</a>"+invalid_link+"(Number)</a>)</div>");
+	}
+	else if (!isNaN(select_val)) {
+		if (curr_link)
+			curr_link.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+		else
+			parent.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+	}
+	else if (/self/.test(select_val)) {
+		select_val = select_val.replace('_','.');
+		if (curr_link)
+			curr_link.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+		else
+			parent.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+	}
+	else {
+		var params = [];
+		if (docs[select_val]['parametric']) {
+			for (var i = 0; i < docs[select_val]['parameters'].length; i++) {
+				var p = docs[select_val]['parameters'][i];
+				if (p == "number")
+					params.push("<div class='arg_link'>"+invalid_link+"(Number)</a></div>");
+				else if (p == "drone")
+					params.push("<div class='arg_link'>"+invalid_link+"(Drone)</a></div>");
+				if (i < docs[select_val]['parameters'].length-1)
+					params.push(",");
+			}
+		}
+		var link_str = "<div class='arg_link'>"+valid_link+select_val+"</a>("
+		for (var i = 0; i < params.length; i++)
+			link_str += params[i];
+		link_str += ")</div>";
+		if (curr_link)
+			curr_link.replaceWith(link_str);
+		else
+			parent.replaceWith(link_str);
+	}
+}
+
+function processNumericalInput(event) {
+	if (event.which == 13) {
+		if (isNaN(event.target.value) || !event.target.value)
+			$("#num_ctrl").attr("class","control-group error");
+		else
+			insertItem(event.target);
+	}
+}
+
+function hidePopup() {
+	var gui_link = $("#guide_popup").parents(".gui_link");
+	$("#guide_popup").remove();
+	setTimeout(function () {
+		gui_link.attr("href","javascript:void(0);");
+		gui_link.attr("onClick","selectItem(this);");
+	}, 250);
 }
 
 function checkReady() {
@@ -434,9 +554,15 @@ function CompileGuideCode() {
 	if (!verified) VerifyCode();
 	var units = $("#priority_queue").children(".gui_unit");
 	var tempCode = "";
+	markedCode = "";
 	units.each( function (index) {
-		console.log($(this).children(".condition"));
+		tempCode += "if (/*cond*/" + $(this).find(".condition").text() + "/*cond*/) ";
+		tempCode += "/*act*/" + $(this).find(".action").text() + "/*act*/; else ";
+		markedCode += "/*cond*/" + $(this).find(".condition").html() + "/*cond*/";
+		markedCode += "/*act*/" + $(this).find(".action").html() + "/*act*/";
 	});
+	tempCode += "{ }";
+	myCode = tempCode;
 }
 
 function DecompileCode(code) {

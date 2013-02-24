@@ -11,7 +11,7 @@ Swarmcombat::Application.routes.draw do
   #match '/games/is_ready', :controller => 'games', :action => 'is_ready'
   resources :games do
     member do
-      get 'ready'
+      post 'ready'
       get 'is_ready'
       get 'get_code'
       get 'watch'
