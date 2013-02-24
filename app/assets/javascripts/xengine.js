@@ -12,11 +12,6 @@ function drawTriangle(ctx, pos, apex, color) {
 	ctx.lineWidth = 2;
 	ctx.strokeStyle = color;
 	ctx.beginPath();
-	// Drawing cannon holes
-	ctx.arc(pos.x - apex.x/4 - apex.y/3, pos.y - apex.y/4 + apex.x/3, 2, Math.PI*2, false);
-	ctx.stroke();
-	ctx.beginPath();
-	ctx.arc(pos.x - apex.x/4 + apex.y/3, pos.y - apex.y/4 - apex.x/3, 2, Math.PI*2, false);
 	// Draw Triangle
 	ctx.moveTo(pos.x - apex.x/2 + apex.y/2, pos.y - apex.y/2 - apex.x/2);
 	ctx.lineTo(pos.x - apex.x/2 - apex.y/2, pos.y - apex.y/2 + apex.x/2);
