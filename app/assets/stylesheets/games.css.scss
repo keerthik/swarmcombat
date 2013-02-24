@@ -14,10 +14,33 @@ body
 
 table,#priority_queue,#cr-stage
 {	
+	font-family: 	"Consolas", "Courier New", Courier, mono;
 	background-color:	rgba(50,150,200,.3);
 	border: 			1px solid #00ccff;
 	border-radius: 		5px;
 	box-shadow: 		0px 0px 25px rgb(20, 128, 216);
+}
+
+table
+{
+	background-color:	rgba(50,150,200,.8);
+	color: #66ff33;
+}
+h1
+{
+	color: #EEE;
+	text-shadow: 0px 0px 10px rgb(50,150,200);
+}
+
+h2
+{
+	color: rgb(50,150,200);
+	text-shadow: 0px 0px 10px rgb(50,150,200);
+}
+.table-striped tbody > tr:nth-child(odd) > td,
+.table-striped tbody > tr:nth-child(odd) > th {
+	background-color: rgba(50, 50, 200, .5);
+	color: #66ff33;	
 }
 
 #priority_queue 

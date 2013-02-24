@@ -163,6 +163,7 @@ function GUIPassOne() {
 		}
 		// Use a timered loop to check for opponent ready
 		// TODO: Determine actual game number (from the URL?)
+		requesting_or_returned = true;
 		var addr = [gameserver, 'ready'].join('/');
 		// TODO: Post my ready state and code to the server
 		$.get(addr, 

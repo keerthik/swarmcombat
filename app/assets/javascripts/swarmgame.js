@@ -215,6 +215,7 @@ function CreateDrones() {
 			var point = drxnVector(this.data.facing, size);
 			if (this.data.alive) {
 				drawTriangle(ctx, pos, point, this.color);
+				if (!executing) return;
 				// Health bar
 				drawHp(ctx, pos, size, this.data.hp, this.data.maxhp, this.color);
 				// TODO: Moving animation -- jets or some shit?
@@ -245,7 +246,7 @@ function CreateDrones() {
 	/* 	Entities created with just this component will reflect the data of that drone.
 		Clients pull data from server into this entity, server pushes changes to the
 		game state by modifying this entity and publishing.
-		*/
+	*/
 	Crafty.c("DroneData", {
 		init:function (){
 			this.hp = this.maxhp;
@@ -256,27 +257,27 @@ function CreateDrones() {
 			});
 		},
 		// Flags for animation/data
-		alive: true,
-		attacking: false,
-		takingdamage: false,
-		moving: false,
-		targetPos: {x:0, y:0},
+		alive: 			true,
+		attacking: 		false,
+		takingdamage: 	false,
+		moving: 		false,
+		targetPos: 		{x:0, y:0},
 		// Game state data
-		instructions:"attack(NearestEnemy());",
-		facing: 0,
-		hp: 0,
+		instructions: 	"attack(NearestEnemy());",
+		facing: 		0,
+		hp: 			0,
 		// unit stats
-		maxhp: 20,
-		attackdmg: 3.5,
-		attackrange: 200,
-		attackcdmax: 1,
-		movespeed: 55,
-		turnspeed: 12,
+		maxhp: 			20,
+		attackdmg: 		3.5,
+		attackrange: 	200,
+		attackcdmax: 	1,
+		movespeed: 		55,
+		turnspeed: 		12,
 		// Graphics hack
-		hitTimer:.2,
+		hitTimerkey: 	.2,
     	// Shortest path to current target
-    	path: null,
-    	grid: null,
+    	path: 			null,
+    	grid: 			null,
     	time_since_update: 0,
     	current_move_target: null,
     });
@@ -290,7 +291,7 @@ function CreateDrones() {
 			_methodName -> Basic game system method - not even hackable
 			methodName	-> Game operation, only available for hacking
 			MethodName	-> Exposed operation, available for instruction set
-			*/
+	*/
 	Crafty.c("DroneOps", {
 		init:function (){
 			this.bind('EnterFrame', function (e) {
@@ -424,7 +425,7 @@ function CreateDrones() {
 				if (enemy.data.alive) {
 					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
 					// Each enemy contributes inversely proportional to his distance from the unit
-					var scaleFactor = 1000000/(1+eVector.magnitudeSq());
+					var scaleFactor = 10000000/(1+eVector.magnitudeSq());
 					eVector.scaleToMagnitude(scaleFactor);
 					retreatVector.x += (eVector.x);
 					retreatVector.y += (eVector.y);
@@ -720,6 +721,11 @@ function CreateDrones() {
 		die: function () {
 			// TODO: stats, data management, UI updates, etc
 			this.data.alive = false;
+			if (this.data.owner>0) {
+				liveRed--;
+			} else {
+				liveGreen--;
+			}
 		},
 		_always: function () {
 			if (!executing || !this.data.alive) return;
@@ -758,12 +764,32 @@ function CreateDrones() {
 
 	// Game Timer
 	timer = Crafty.e("timer, 2D, Canvas")
-	.attr({dt:0, time:new Date().getTime()})
+	.attr({dt:0, time:new Date().getTime(), starttime: new Date().getTime()})
 	.bind('EnterFrame', function () {
+		if (!executing) return;
 		this.dt = 0.001*(new Date().getTime() - this.time);
 		this.time = new Date().getTime();
+		// Pause execution of game to let go of CPU
+		if (HasGameEnded()) {
+			// TODO: Display some victory thang
+			if (liveGreen > liveRed) {
+				console.log("Green Wins!");
+			} else {
+				console.log("Red Wins!");
+			}
+			executing = false;
+		}
 	});
 
+}
+
+// Parameters for evaluating end of game. Data is cheaper than processing
+var liveGreen;
+var liveRed;
+var maxGameLength = 180000; // 3 minutes
+function HasGameEnded() {
+	console.log((timer.time-timer.starttime));
+	return (liveGreen == 0 || liveRed == 0 || (timer.time-timer.starttime) > maxGameLength)
 }
 
 function InitializeGame() {
@@ -776,28 +802,30 @@ function InitializeGame() {
 	})
 	if (servermode) console.log("Server mode detected...Creating simulators");
 	if (clientmode) console.log("Client mode detected...Creating renderers");
-	for (var i = 0; i < 3; i++) {
+	var n = 5;
+	liveGreen = liveRed = n;
+	var gap = (Crafty.viewport.height-20)/(n+1);
+	for (var i = 0; i < n; i++) {
 		// Container for the data that is expected to be piped away or piped in
 		var thisData = Crafty.e("Tridata, DroneData")
-		.attr({x: 50, y: 60*(i+1), owner: 0});
+		.attr({x: 50, y: gap*(i+1), owner: 0});
 		var thatData = Crafty.e("Diadata, DroneData")
-		.attr({x: Crafty.viewport.width-80, y: 60*(i+1), owner: 1});
+		.attr({x: Crafty.viewport.width-80, y: gap*(i+1), owner: 1, facing: Math.PI});
 
 		if (servermode) {
 			var thisOps = Crafty.e("Trisim, DroneOps")
-			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0, data: thisData});
+			.attr({x: 50, y: gap*(i+1), w: 30, h: 30, owner: 0, data: thisData});
 			var thatOps = Crafty.e("Diasim, DroneOps")
-			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
+			.attr({x: 50, y: gap*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
 		
 		if (clientmode) {
 			Crafty.e("Trident, 2D, Canvas, DroneDraw")
-			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 0, data: thisData});
+			.attr({x: 50, y: gap*(i+1), w: 30, h: 30, owner: 0, data: thisData});
 			Crafty.e("Diamond, 2D, Canvas, DroneDraw")
-			.attr({x: 50, y: 60*(i+1), w: 30, h: 30, owner: 1, data: thatData});
+			.attr({x: 50, y: gap*(i+1), w: 30, h: 30, owner: 1, data: thatData});
 		}
 	}
-
 }
 //Ball
 function CreateBall() {

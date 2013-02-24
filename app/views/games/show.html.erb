@@ -15,7 +15,7 @@
 <div id="game_box">
   <h1><%= @game.name %></h1>
   <h2>You are 
-    <% if @game.player0 == current_user.username %> <span style='color:green'>Green</span>
+    <% if @game.player0 == current_user.username %> <span style='color:#66ff33'>Green</span>
     <script>me = 0;
       <% if !@game.code0.nil? %>current_code = "<%= @game.code0 %>";<% end %></script><% else %>
     <% if @game.player1 == current_user.username %> <span style='color:red'>Red</span> 
