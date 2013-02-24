@@ -3,14 +3,14 @@ var docs = {
 	Retreat: {
 		format: 'action',
 		type: '',
-		docstring: 'The drone will try to maneauver away from all the enemy units, giving priority to evading the closest enemies',
+		docstring: 'The drone will try to maneuver away from all the enemy units, giving priority to evading the closest enemies',
 		code: '',
 	},
 
 	Regroup: {
 		format: 'action',
 		type: '',
-		docstring: 'The drone will try to maneauver towards the general location of its allies',
+		docstring: 'The drone will try to maneuver towards the general location of its allies',
 		code: '',
 	},
 
@@ -21,7 +21,7 @@ var docs = {
 		parametric: true,
 		parameters: ['drone'],
 		docstring: 'The drone will attempt to attack the target drone.\n If the target is not in range, the drone will try to maneauver into range first',
-		code: '',
+		code: 'Attack(%drone%)',
 	},
 
 	moveTowardsUnit: {
@@ -29,7 +29,7 @@ var docs = {
 		type: '',
 		parametric: true,
 		parameters: ['drone'],
-		docstring: 'The drone will maneauver towards the target drone',
+		docstring: 'The drone will maneuver towards the target drone',
 		code: '',
 	},
 	
@@ -47,7 +47,7 @@ var docs = {
 		type: '',
 		parametric: true,
 		parameters: ['number', 'number'],
-		docstring: 'The drone will maneauver towards the target location',
+		docstring: 'The drone will maneuver towards the target location',
 		code: '',
 	},
 
@@ -76,7 +76,7 @@ var docs = {
 		format: 'value',
 		type: 'drone',
 		docstring: 'The drone object of the nearest live enemy unit',
-		code: '',
+		code: 'NearestEnemy()',
 	},
 
 

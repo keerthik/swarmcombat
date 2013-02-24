@@ -29,7 +29,15 @@ table,#priority_queue,#cr-stage
 .gui_unit
 {
 	padding: 2px;
-	margin: 2px;
+	margin: 0px auto;
+	display: table;
+}
+
+.gui_well
+{
+	width: 40%;
+	padding: 10px;
+	display: table-cell;
 }
 
 input.condition
