@@ -3,27 +3,9 @@
 
 <% end %>
 
-<h2>API Documentation</h2>
 <ol id='documentation' class='code'>
+<h2>API Documentation</h2>
 <script>
-	for (var key in docs) {
-		if (docs.hasOwnProperty(key)) {
-			var docPiece = '';
-			docPiece += '<h1>'+key+'</h1>';
-			docPiece += docs[key]['format']=='action'?
-					'<span class="action">Action</span>':
-					'Type: <span class="value">'+docs[key]['type']+'</span>';
-			docPiece += docs[key].hasOwnProperty('parameters')?
-			'<br>Parameters: <span class="value">'+docs[key].parameters
-			+'</span>':'';
-			var docstring = docs[key].docstring
-								.replace('%w', '<span class="value">'+600 + '</span>')
-								.replace('%h', '<span class="value">'+300 + '</span>');
-			console.log(docstring);
-			docPiece += '<li>' + docstring + '\n</li>';
-
-			$('#documentation').append(docPiece);
-		}
-	}
+	buildAPIDocs();
 </script>
 </ol>

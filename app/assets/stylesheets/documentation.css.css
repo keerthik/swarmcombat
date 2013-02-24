@@ -4,18 +4,23 @@
 
 .code
 {
-	background-color:	rgba(50,150,200,.9);
-	border: 1px solid #00ccff;
-	box-shadow: 0px 0px 25px rgb(20, 128, 216);
-	border-radius: 5px;
 	list-style-type: none;
-	margin: 0px;
-	padding: 10px;
-	overflow: auto;
 	font-family: 	"Consolas", "Courier New", Courier, mono;
 	font-size: 		16px;
+}
+
+#documentation {
+	background-color:	rgba(50,150,200,.9);
+	border: 1px solid #00ccff;
+	border-radius: 5px;
+	box-shadow: 0px 0px 25px rgb(20, 128, 216);
+	margin: 		10px;
+	margin-bottom: 	40px;
+	padding: 		30px;
+	padding-top: 	10px;
+	overflow: 		auto;
 	width: ;
-	height: ;
+	height: ;	
 }
 
 .code .action {

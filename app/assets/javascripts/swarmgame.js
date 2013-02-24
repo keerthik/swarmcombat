@@ -1,5 +1,5 @@
 function RunGame() {
-	Crafty.init(600, 300);
+	Crafty.init(800, 400);
 	Crafty.background('rgba(0,0,0,100)');
 	CreateDrones();
 	InitializeGame();	
@@ -781,7 +781,7 @@ function InitializeGame() {
 		var thisData = Crafty.e("Tridata, DroneData")
 		.attr({x: 50, y: 60*(i+1), owner: 0});
 		var thatData = Crafty.e("Diadata, DroneData")
-		.attr({x: 520, y: 60*(i+1), owner: 1});
+		.attr({x: Crafty.viewport.width-80, y: 60*(i+1), owner: 1});
 
 		if (servermode) {
 			var thisOps = Crafty.e("Trisim, DroneOps")

@@ -29,6 +29,13 @@ function CreateGUI() {
 	$("#game_ui")
 	.append('<input id="simulate" type="button" class="btn btn-large btn-success disabled" value="Simulate" />');
 
+	$("#game_ui")
+	.append('<div class="pop-up code"><span class="value">drone</span>' +
+				'<select>' +
+					'<option>NearestEnemy</option>' +
+					'<option>WeakestEnemy</option>' +
+				'<select></div>');
+	
 	checkReady();
 	if (!spectating) {
 		$("#game_ui")

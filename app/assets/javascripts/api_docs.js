@@ -158,3 +158,25 @@ var docs = {
 	},
 
 };
+
+function buildAPIDocs() {
+	var width = 800;
+	var height = 400;
+	for (var key in docs) {
+		if (docs.hasOwnProperty(key)) {
+			var docPiece = '';
+			docPiece += '<h1>'+key+'</h1>';
+			docPiece += docs[key]['format']=='action'?
+					'<span class="action">Action</span>':
+					'Type: <span class="value">'+docs[key]['type']+'</span>';
+			docPiece += docs[key].hasOwnProperty('parameters')?
+			'<br>Parameters: <span class="value">'+docs[key].parameters
+			+'</span>':'';
+			var docstring = docs[key].docstring
+								.replace('%w', '<span class="value">'+ width + '</span>')
+								.replace('%h', '<span class="value">'+ height + '</span>');
+			docPiece += '<li>' + docstring + '\n</li>';
+			$('#documentation').append(docPiece);
+		}
+	}
+}
