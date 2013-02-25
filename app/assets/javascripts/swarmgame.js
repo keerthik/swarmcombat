@@ -744,9 +744,13 @@ function CreateDrones() {
 			if (!executing || !this.data.alive) return;
 			
 			// 'with' allows us to drop the 'this.' in the code here
-			with (this) {
-				var self = jQuery.extend(true, {}, data);
-				eval(data.instructions);
+			try {
+				with (this) {
+					var self = jQuery.extend(true, {}, data);
+					eval(data.instructions);
+				}
+			} catch (err) {
+				alert("Uh-oh, something broke! Drop us a bug report, and refresh the page to continue using the game!");
 			}
 			// Death happens only at the end of a "frame", which is essentially a "turn"
 			if (this.data.hp <= 0) {
