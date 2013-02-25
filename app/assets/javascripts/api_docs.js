@@ -24,10 +24,10 @@ var docs = {
 		code: 'Attack(%drone%)',
 	},
 
-	UseAbility: {
+	UseShield: {
 		format: 'action',
 		type: 'action',
-		docstring: 'The drone will attempt to use its special ability',
+		docstring: 'The drone will attempt to use its shield, briefly making it invulnerable. Each drone may only use their shield once per game.',
 		code: '',
 	},
 
@@ -37,15 +37,6 @@ var docs = {
 		parametric: true,
 		parameters: ['drone'],
 		docstring: 'The drone will maneuver towards the target drone',
-		code: '',
-	},
-	
-	LookAt: {
-		format: 'action',
-		type: 'action',
-		parametric: true,
-		parameters: ['number', 'number'],
-		docstring: 'The drone will rotate to face the target location',
 		code: '',
 	},
 
@@ -65,7 +56,7 @@ var docs = {
 		code: '',
 	},
 
-	GetHp: {
+	GetHP: {
 		format: 'value',
 		type: 'number',
 		parametric: true,
@@ -74,35 +65,37 @@ var docs = {
 		code: '',
 	},
 
-	MaxHp: {
+	MaxHP: {
 		format: 'value',
 		type: 'number',
 		docstring: 'Max hitpoints of a drone. Use this with a fractional multiplier for detecting hitpoint thresholds',
 		code: '',
 	},
 
-	HasAbility: {
+	Not:{
+		format: 'value',
+		type: 'boolean',
+		parametric: true,
+		parameters: ['boolean'],
+		docstring: 'Negates the boolean argument',
+		code: '',
+	},
+
+	HasShield: {
 		format: 'value',
 		type: 'boolean',
 		parametric: true,
 		parameters: ['drone'],
-		docstring: 'True if this drone still has its special ability available',
+		docstring: 'True if this drone still has its one-time use shield available',
 		code: '',
 	},
 
-	AbilityActive: {
+	ShieldActive: {
 		format: 'value',
 		type: 'boolean',
 		parametric: true,
 		parameters: ['drone'],
-		docstring: 'True if this drone is currently using its special ability',
-		code: '',
-	},
-
-	self_maxhp: {
-		format: 'value',
-		type: 'number',
-		docstring: 'Maximum hit points of the drone',
+		docstring: 'True if this drone is currently using its shield',
 		code: '',
 	},
 
@@ -148,7 +141,6 @@ var docs = {
 		docstring: 'The drone object of the live allied unit with the lowest hitpoints remaining, thats not the drone itself.\n ',
 		code: '',
 	},
-
 
 	IsTakingDamage:{
 		format: 'value',

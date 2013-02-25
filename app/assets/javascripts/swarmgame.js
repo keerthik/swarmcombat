@@ -223,8 +223,8 @@ function CreateDrones() {
 				if (this.data.moving) {
 
 				}
-				// Special ability animation
-				if (this.abilityActive()) {
+				// Special shield animation
+				if (this.shieldActive()) {
 					drawShields(ctx, pos, size);
 				}
 				// Attack animation
@@ -248,8 +248,8 @@ function CreateDrones() {
 			
 		},
 
-		abilityActive: function() {
-			return (!this.data.abilityAvailable && this.data.abilityTimer > 0);
+		shieldActive: function() {
+			return (!this.data.shieldAvailable && this.data.shieldTimer > 0);
 		},
 	});
 
@@ -283,9 +283,9 @@ function CreateDrones() {
 		attackcdmax: 	1,
 		movespeed: 		55,
 		turnspeed: 		12,
-		// Special ability
-		abilityAvailable: true,
-		abilityTimer: 	3,
+		// Special shield
+		shieldAvailable: true,
+		shieldTimer: 	3,
 		// Graphics hack
 		hitTimerkey: 	.2,
     	// Shortest path to current target
@@ -485,12 +485,12 @@ function CreateDrones() {
 					.distance(new Crafty.math.Vector2D(unit.data.x, unit.data.y)));
 		},
 
-		HasAbility: function(drone) {
-			return drone.data.abilityAvailable;
+		HasShield: function(drone) {
+			return drone.data.shieldAvailable;
 		},
 
-		AbilityActive: function(drone) {
-			return (!drone.data.abilityAvailable && drone.data.abilityTimer > 0);
+		ShieldActive: function(drone) {
+			return (!drone.data.shieldAvailable && drone.data.shieldTimer > 0);
 		},
 
 		GetHP: function(drone) {
@@ -541,10 +541,10 @@ function CreateDrones() {
 			this.moveTo(destination.x, destination.y);
 		},
 
-		UseAbility: function () {
-			if (!this.data.abilityAvailable) return;
-			// This basically triggers the ability
-			this.data.abilityAvailable = false;
+		UseShield: function () {
+			if (!this.data.shieldAvailable) return;
+			// This basically triggers the shield
+			this.data.shieldAvailable = false;
 		},
 
 		attackcd: 0,
@@ -572,6 +572,10 @@ function CreateDrones() {
 				this.attackcd = this.data.attackcdmax;
 			}
 			return true;
+		},
+
+		Not: function(bool) {
+			return !bool;
 		},
 
 		NoCondition: function() {
@@ -749,7 +753,7 @@ function CreateDrones() {
 
 		takeDamage: function(damage) {
 			// Take no damage when shield is on
-			if (this.AbilityActive(this)) {
+			if (this.ShieldActive(this)) {
 				return;
 			}
 			// For animation purposes
@@ -773,7 +777,7 @@ function CreateDrones() {
 		_always: function () {
 			if (!executing || !this.data.alive) return;
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
-			if (this.AbilityActive(this)) this.data.abilityTimer -= timer.dt;
+			if (this.ShieldActive(this)) this.data.shieldTimer -= timer.dt;
 			this.data.facing = this.data.facing.mod(2*Math.PI);
 			this.data.moving = false;
 			this.data.attacking = false;

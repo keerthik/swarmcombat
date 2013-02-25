@@ -290,16 +290,17 @@ function selectItem(element) {
 	var select_options = [];
 	var type;
 	var format;
-	var comp_ops = ["==", ">", "<", ">=", "<="];
+	var comp_ops = ["==", "!=", ">", "<", ">=", "<="];
 	var arith_ops = ["+", "-", "*", "/"];
+	var logic_ops = ["&&", "||"];
 	var num_field = "";
 
 	// Hide any existing pop-ups
 	hidePopup();
-	if (element.text == "(Condition)" || comp_ops.indexOf(element.text) > -1 || 
-		(docs[element.text] && docs[element.text]['type'] == "boolean")) {
+	if (element.text == "(Condition)" || element.text == "(Boolean)" || comp_ops.indexOf(element.text) > -1 || 
+		logic_ops.indexOf(element.text) > -1 || (docs[element.text] && docs[element.text]['type'] == "boolean")) {
 		type = "boolean";
-		select_options = comp_ops;
+		select_options = comp_ops.concat(logic_ops);
 	}
 	else if (element.text == "(Number)" || arith_ops.indexOf(element.text) > -1 || 
 		(docs[element.text] && docs[element.text]['type'] == "number") || !isNaN(element.text) ||
@@ -345,51 +346,57 @@ function selectItem(element) {
 }
 
 function insertItem(element) {
-	var comp_ops = ["==", ">", "<", ">=", "<="];
+	var comp_ops = ["==", "!=", ">", "<", ">=", "<="];
 	var arith_ops = ["+", "-", "*", "/"];
+	var logic_ops = ["&&", "||"];
 	var select_val = element.value;
 	var curr_link = $(element).parents(".gui_link");
 	var parent = curr_link.parent();
 	$(element).parents(".pop-up").remove();
-	if (comp_ops.indexOf(curr_link.text()) > -1) {
-		parent = curr_link.parents(".comp_link");
+	if (comp_ops.indexOf(curr_link.text()) > -1 || arith_ops.indexOf(curr_link.text()) > -1 ||
+		logic_ops.indexOf(curr_link.text()) > -1) {
+		parent = $(curr_link.parents(".op_container")[0]);
 		curr_link = null;
 	}
-	else if (arith_ops.indexOf(curr_link.text()) > -1) {
-		parent = $(curr_link.parents(".arith_link")[0]);
-		curr_link = null;
-	}
-	else if (parent.attr("class") == "arg_link")
+	else if (parent.attr("class") == "arg_container")
 		curr_link = null;
 
 	if (comp_ops.indexOf(select_val) > -1) {
 		if (curr_link)
-			curr_link.replaceWith("<div class='gui_container comp_link'>"+invalid_link+"(Number)</a> "+
-				valid_link+select_val+"</a> "+invalid_link+"(Number)</a></div>");
+			curr_link.replaceWith("<div class='op_container'>("+invalid_link+"(Number)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Number)</a>)</div>");
 		else
-			parent.replaceWith("<div class='gui_container comp_link'>"+invalid_link+"(Number)</a> "+
-				valid_link+select_val+"</a> "+invalid_link+"(Number)</a></div>");
+			parent.replaceWith("<div class='op_container'>("+invalid_link+"(Number)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Number)</a>)</div>");
+	}
+	else if (logic_ops.indexOf(select_val) > -1) {
+		if (curr_link)
+			curr_link.replaceWith("<div class='op_container'>("+invalid_link+"(Boolean)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Boolean)</a>)</div>");
+		else
+			parent.replaceWith("<div class='op_container'>("+invalid_link+"(Boolean)</a> "+
+				valid_link+select_val+"</a> "+invalid_link+"(Boolean)</a>)</div>");
 	}
 	else if (arith_ops.indexOf(select_val) > -1) {
 		if (curr_link)
-			curr_link.replaceWith("<div class='gui_container arith_link'>("+invalid_link+"(Number)</a>"+
+			curr_link.replaceWith("<div class='op_container'>("+invalid_link+"(Number)</a>"+
 				valid_link+select_val+"</a>"+invalid_link+"(Number)</a>)</div>");
 		else
-			parent.replaceWith("<div class='gui_container arith_link'>("+invalid_link+"(Number)</a>"+
+			parent.replaceWith("<div class='op_container'>("+invalid_link+"(Number)</a>"+
 				valid_link+select_val+"</a>"+invalid_link+"(Number)</a>)</div>");
 	}
 	else if (!isNaN(select_val)) {
 		if (curr_link)
-			curr_link.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+			curr_link.replaceWith("<div class='arg_container'>"+valid_link+select_val+"</a></div>");
 		else
-			parent.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+			parent.replaceWith("<div class='arg_container'>"+valid_link+select_val+"</a></div>");
 	}
 	else if (/self/.test(select_val)) {
 		select_val = select_val.replace('_','.');
 		if (curr_link)
-			curr_link.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+			curr_link.replaceWith("<div class='arg_container'>"+valid_link+select_val+"</a></div>");
 		else
-			parent.replaceWith("<div class='arg_link'>"+valid_link+select_val+"</a></div>");
+			parent.replaceWith("<div class='arg_container'>"+valid_link+select_val+"</a></div>");
 	}
 	else {
 		var params = [];
@@ -397,14 +404,16 @@ function insertItem(element) {
 			for (var i = 0; i < docs[select_val]['parameters'].length; i++) {
 				var p = docs[select_val]['parameters'][i];
 				if (p == "number")
-					params.push("<div class='arg_link'>"+invalid_link+"(Number)</a></div>");
+					params.push("<div class='arg_container'>"+invalid_link+"(Number)</a></div>");
 				else if (p == "drone")
-					params.push("<div class='arg_link'>"+invalid_link+"(Drone)</a></div>");
+					params.push("<div class='arg_container'>"+invalid_link+"(Drone)</a></div>");
+				else if (p == "boolean")
+					params.push("<div class='arg_container'>"+invalid_link+"(Boolean)</a></div>");
 				if (i < docs[select_val]['parameters'].length-1)
 					params.push(",");
 			}
 		}
-		var link_str = "<div class='arg_link'>"+valid_link+select_val+"</a>("
+		var link_str = "<div class='arg_container'>"+valid_link+select_val+"</a>("
 		for (var i = 0; i < params.length; i++)
 			link_str += params[i];
 		link_str += ")</div>";

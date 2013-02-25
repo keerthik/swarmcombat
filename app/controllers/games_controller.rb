@@ -84,7 +84,7 @@ class GamesController < ApplicationController
 
   def get_code
     @game = Game.find(params[:id])
-    res = {:code0 => @game.code0, :code1 => @game.code1, :testCode => 'Retreat();'}
+    res = {:code0 => @game.code0, :code1 => @game.code1, :testCode => 'Attack(NearestEnemy());'}
     render :json => res
   end 
 
