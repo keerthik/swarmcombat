@@ -56,22 +56,22 @@ function CreateGUI() {
 	var simulating = false;
 	$("#simulate")
 		.click(function(){
-			if (!simulating) {
-				simulating = true;
-				InitializeGame();
-				$.get(gameserver+'/get_code', function(data) {
-					if (spectating) {
-						myCode = data['code0'];
-						theirCode = data['code1'];
-					}
-					else {
-						myCode = data['code' + me];
-						theirCode = testMode?data['testCode']:data['code' + (1-me)];
-					}
-					AssignCode();
-					PrepareExecution();
-				});
-			}
+			executing = false;
+			$("#game_ui").remove('#winMessage');
+			simulating = true;
+			InitializeGame();
+			$.get(gameserver+'/get_code', function(data) {
+				if (spectating) {
+					myCode = data['code0'];
+					theirCode = data['code1'];
+				}
+				else {
+					myCode = data['code' + me];
+					theirCode = testMode?data['testCode']:data['code' + (1-me)];
+				}
+				AssignCode();
+				PrepareExecution();
+			});
 		});
 	$(".ready")
 		.click(function(){

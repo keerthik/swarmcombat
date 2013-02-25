@@ -14,6 +14,8 @@ function RunGame() {
 }
 
 function PrepareExecution() {
+	$("#winMessage").remove();
+	timer.starttime = new Date().getTime();
 	executing = true;
 }
 
@@ -193,7 +195,6 @@ function CreateDrones() {
 		init:function (){
 			this.deathParticles = new ParticleSystem(20, 50);
 			this.gunParticles = new ParticleSystem(4, 0, true);
-			//console.log(this.particles);
 			this.bind('EnterFrame', function (e) {
 				this.x += 0;
 				this.x = this.data.x;
@@ -228,6 +229,7 @@ function CreateDrones() {
 				// TODO: Hit animation
 				if (this.data.takingdamage) {
 					this.data.hitTimer -= timer.dt;
+					this.data.takingdamage = false;
 					if (this.data.hitTimer <= 0) {
 						this.data.hitTimer = this.hitTimerMax;
 						this.data.takingdamage = false;
@@ -267,8 +269,8 @@ function CreateDrones() {
 		facing: 		0,
 		hp: 			0,
 		// unit stats
-		maxhp: 			20,
-		attackdmg: 		3.5,
+		maxhp: 			100,
+		attackdmg: 		13,
 		attackrange: 	200,
 		attackcdmax: 	1,
 		movespeed: 		55,
@@ -776,11 +778,18 @@ function CreateDrones() {
 		// Pause execution of game to let go of CPU
 		if (HasGameEnded()) {
 			// TODO: Display some victory thang
+			var winner = '';
 			if (liveGreen > liveRed) {
 				console.log("Green Wins!");
+				winner = "<span style='color:#66ff33'>Green</span>";
+			} else if (liveGreen == liveRed) {
+				winner = "<span style='color:white'>Everybody</span>";
 			} else {
 				console.log("Red Wins!");
+				winner = "<span style='color:red'>Red</span>";
 			}
+			$("#game_ui")
+				.prepend('<div id="winMessage"><p>'+ winner +' wins!</p></div>');
 			executing = false;
 		}
 	});
@@ -790,7 +799,7 @@ function CreateDrones() {
 // Parameters for evaluating end of game. Data is cheaper than processing
 var liveGreen;
 var liveRed;
-var maxGameLength = 180000; // 3 minutes
+var maxGameLength = 45000; // 45 seconds
 function HasGameEnded() {
 	return (liveGreen == 0 || liveRed == 0 || (timer.time-timer.starttime) > maxGameLength)
 }
