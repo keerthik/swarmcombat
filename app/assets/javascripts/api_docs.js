@@ -130,6 +130,13 @@ var docs = {
 		code: 'IsTakingDamage()',
 	},
 
+	NoCondition:{
+		format: 'value',
+		type: 'boolean',
+		docstring: 'Always evaluates to true. Use as a catch-all in the bottom of your instruction set.',
+		code: '',
+	},
+
 	EnemiesInRadius: {
 		format: 'value',
 		type: 'number',

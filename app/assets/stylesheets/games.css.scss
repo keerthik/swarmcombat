@@ -5,7 +5,7 @@
 
 body
 {
-	background-image: 		url('lightning_planet.jpg');
+	background-image: 		url('dark_background.png');
 	background-position:	center;
 	background-repeat:		no-repeat;
 	background-attachment:	fixed;
@@ -74,7 +74,7 @@ h2
 	display: inline;
 }
 
-a.invalid
+a.invalid, #not_ready_warning
 {
 	color: #f00;
 }

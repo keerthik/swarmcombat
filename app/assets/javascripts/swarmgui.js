@@ -35,7 +35,8 @@ function CreateGUI() {
 	getServer();
 	console.log("Making UI");
 	$("#game_ui")
-	.append('<input id="simulate" type="button" class="btn btn-large btn-success disabled" value="Simulate" disabled />');
+	.append('<input id="simulate" type="button" class="btn btn-large btn-success disabled" value="Simulate" disabled />'+
+			'<p id="not_ready_warning">Both players must submit instructions before simulation can play.</p>');
 
 	
 	checkReady();
@@ -154,6 +155,7 @@ function GUIPassOne() {
 				if (data['ready']) {
 					$("#simulate").attr('class', 'btn btn-large btn-success');
 					$("#simulate").removeAttr("disabled");
+					$("#not_ready_warning").remove();
 					clearInterval(check_ready);
 				}
 			})
@@ -184,10 +186,11 @@ function GuideGUI() {
 		actions.push(temp[1]);
 	}
 
-	var defaultCondition = "<div class='condition outer_link'>"+invalid_link+"(Boolean)</a></div>";
+	var defaultCondition = "<div class='condition outer_link'>"+invalid_link+"(Condition)</a></div>";
 	var defaultAction = "<div class='action outer_link'>"+invalid_link+"(Action)</a></div>";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
+	$("#priority_queue").append('<p>Conditions and actions will be evaluated from top to bottom by each of your units.');
 	if (actions.length > 0) {
 		for (var i = 0; i < actions.length; i++) {
 			if (conditions[i])
@@ -219,6 +222,10 @@ function GuideGUI() {
 		});
 	
 	readyFunc = function() {
+		if ($(".invalid").length > 0) {
+			alert("Some instructions are invalid.");
+			return;
+		}
 		CompileGuideCode();
 		if (!verified) {
 			console.log("Code unverified...Please verify code");
@@ -244,6 +251,7 @@ function GuideGUI() {
 				if (testMode || data['ready']) {
 					$("#simulate").attr('class', 'btn btn-large btn-success');
 					$("#simulate").removeAttr("disabled");
+					$("#not_ready_warning").remove();
 					clearInterval(check_ready);
 				}
 			})
@@ -290,7 +298,7 @@ function selectItem(element) {
 
 	// Hide any existing pop-ups
 	hidePopup();
-	if (element.text == "(Boolean)" || comp_ops.indexOf(element.text) > -1 || 
+	if (element.text == "(Condition)" || comp_ops.indexOf(element.text) > -1 || 
 		(docs[element.text] && docs[element.text]['type'] == "boolean")) {
 		type = "boolean";
 		select_options = comp_ops;
@@ -433,6 +441,7 @@ function checkReady() {
 		if (data['ready']) {
 			$("#simulate").attr('class', 'btn btn-large btn-success');
 			$("#simulate").removeAttr("disabled");
+			$("#not_ready_warning").remove();
 			clearInterval(check_ready);
 		}
 	});

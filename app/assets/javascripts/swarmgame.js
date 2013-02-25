@@ -709,6 +709,10 @@ function CreateDrones() {
 			return true;
 		},
 
+		NoCondition: function() {
+			return true;
+		},
+
 		takeDamage: function(damage) {
 			// For animation purposes
 			this.data.takingdamage = true;
