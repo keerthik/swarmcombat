@@ -260,12 +260,11 @@ function addGUIUnit(condition, action) {
 	$("#priority_queue")
 	.append(
 		'<div id="gui_unit_0" class="gui_unit">' +
-			'<input type="button" class="btn move_row_up" value="^" />' +
-			'<input type="button" class="btn add_row_up" value="^ +" />' +
+			'<a href="javascript:void(0);" class="btn move_row_up"><i class="icon-arrow-up"></i></a>&nbsp;' +
+			'<a href="javascript:void(0);" class="btn move_row_down"><i class="icon-arrow-down"></i></a>' +
 			'  <input type="text" class="condition" value="'+condition+'">  ' +
 			'  <input type="text" class="action" value="'+action+'">  ' +
-			'<input type="button" class="btn add_row_down" value="+ v" />' +
-			'<input type="button" class="btn move_row_down" value="v" />' +
+			'<a href="javascript:void(0);" class="btn add_row_down"><i class="icon-plus"></i></a>' +
 		'</div>');
 }
 
@@ -273,12 +272,11 @@ function addGuideUnit(condition, action) {
 	$("#priority_queue")
 	.append(
 		'<div id="gui_unit_0" class="gui_unit">' +
-			'<input type="button" class="btn move_row_up" value="^" />' +
-			'<input type="button" class="btn add_row_up" value="^ +" />' +
+			'<a href="javascript:void(0);" class="btn move_row_up"><i class="icon-arrow-up"></i></a>&nbsp;' +
+			'<a href="javascript:void(0);" class="btn move_row_down"><i class="icon-arrow-down"></i></a>' +
 			'  <div class="gui_well"><div class="well well-small">'+condition+'</div></div>  ' +
 			'  <div class="gui_well"><div class="well well-small">'+action+'</div></div>  ' +
-			'<input type="button" class="btn add_row_down" value="+ v" />' +
-			'<input type="button" class="btn move_row_down" value="v" />' +
+			'<a href="javascript:void(0);" class="btn add_row_down"><i class="icon-plus"></i></a>' +
 		'</div>');
 }
 
