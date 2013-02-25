@@ -171,7 +171,6 @@ function GuideGUI() {
 		console.log("Error retrieving last used code!");
 		current_marked_code = null;
 	}
-	console.log(current_marked_code);
 	var condition_re = /\/\*cond\*\/(.+?)\/\*cond\*\//g;
 	var conditions = [];
 	var temp;
@@ -492,6 +491,8 @@ function AssignCode() {
 	Crafty("Diasim").each(function(){
 		this.data.instructions = (this.data.owner == me)?myCode:theirCode;
 	});
+	console.log(myCode);
+	console.log(theirCode);
 }
 
 function UploadOrders() {

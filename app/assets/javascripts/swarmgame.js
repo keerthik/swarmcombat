@@ -223,6 +223,10 @@ function CreateDrones() {
 				if (this.data.moving) {
 
 				}
+				// Special ability animation
+				if (this.abilityActive()) {
+					drawShields(ctx, pos, size);
+				}
 				// Attack animation
 				this.gunParticles.setParams(this.color, false, pos, this.data.targetPos, this.data.facing, this.data.attacking);
 				this.gunParticles.draw(ctx, pos, timer.dt);
@@ -242,6 +246,10 @@ function CreateDrones() {
 				this.deathTimer -= timer.dt;
 			}
 			
+		},
+
+		abilityActive: function() {
+			return (!this.data.abilityAvailable && this.data.abilityTimer > 0);
 		},
 	});
 
@@ -275,6 +283,9 @@ function CreateDrones() {
 		attackcdmax: 	1,
 		movespeed: 		55,
 		turnspeed: 		12,
+		// Special ability
+		abilityAvailable: true,
+		abilityTimer: 	3,
 		// Graphics hack
 		hitTimerkey: 	.2,
     	// Shortest path to current target
@@ -413,44 +424,8 @@ function CreateDrones() {
 		},
 
 
-		IsTakingDamage: function() {
-			return this.data.takingdamage;
-		},
-
-
-		// Macro actions
-		Retreat: function () {
-			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
-			var retreatVector = {x:0, y:0};
-			for (var i = 0; i < n; i++ ) {
-				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
-				if (enemy.data.alive) {
-					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
-					// Each enemy contributes inversely proportional to his distance from the unit
-					var scaleFactor = 10000000/(1+eVector.magnitudeSq());
-					eVector.scaleToMagnitude(scaleFactor);
-					retreatVector.x += (eVector.x);
-					retreatVector.y += (eVector.y);
-				}
-			}
-			this.moveTo(this.data.x - retreatVector.x, this.data.y - retreatVector.y);
-		},
-
-		Regroup: function () {
-			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
-			var nAllies = 0;
-			var destination = {x:0, y:0};
-			for (var i = 0; i < n; i++) {
-				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
-				if (ally.data != this.data && ally.data.alive) {
-					nAllies++;
-					destination.x += ally.data.x;
-					destination.y += ally.data.y;
-				}
-			}
-			destination.x /= nAllies;
-			destination.y /= nAllies;
-			this.moveTo(destination.x, destination.y);
+		IsTakingDamage: function(drone) {
+			return drone.data.takingdamage;
 		},
 
 		// Sensing functions
@@ -510,11 +485,99 @@ function CreateDrones() {
 					.distance(new Crafty.math.Vector2D(unit.data.x, unit.data.y)));
 		},
 
+		HasAbility: function(drone) {
+			return drone.data.abilityAvailable;
+		},
+
+		AbilityActive: function(drone) {
+			return (!drone.data.abilityAvailable && drone.data.abilityTimer > 0);
+		},
+
+		GetHP: function(drone) {
+			return drone.data.hp;
+		},
+
+		MaxHP: function() {
+			return this.data.maxhp;
+		},
+
 		// Core actions
 		LookAt: function (target_x, target_y) {
 			return this.lookAt({x: target_x, y: target_y});
 		},
-		
+		    	
+		// Macro actions
+		Retreat: function () {
+			var n = Crafty(this.owner>0?"Trisim":"Diasim").length;
+			var retreatVector = {x:0, y:0};
+			for (var i = 0; i < n; i++ ) {
+				var enemy = Crafty(Crafty(this.owner>0?"Trisim":"Diasim")[i]);
+				if (enemy.data.alive) {
+					var eVector = new Crafty.math.Vector2D(enemy.data.x - this.data.x, enemy.data.y - this.data.y);
+					// Each enemy contributes inversely proportional to his distance from the unit
+					var scaleFactor = 10000000/(1+eVector.magnitudeSq());
+					eVector.scaleToMagnitude(scaleFactor);
+					retreatVector.x += (eVector.x);
+					retreatVector.y += (eVector.y);
+				}
+			}
+			this.moveTo(this.data.x - retreatVector.x, this.data.y - retreatVector.y);
+		},
+
+		Regroup: function () {
+			var n = Crafty(this.owner>0?"Diasim":"Trisim").length;
+			var nAllies = 0;
+			var destination = {x:0, y:0};
+			for (var i = 0; i < n; i++) {
+				var ally = Crafty(Crafty(this.owner>0?"Diasim":"Trisim")[i]);
+				if (ally.data != this.data && ally.data.alive) {
+					nAllies++;
+					destination.x += ally.data.x;
+					destination.y += ally.data.y;
+				}
+			}
+			destination.x /= nAllies;
+			destination.y /= nAllies;
+			this.moveTo(destination.x, destination.y);
+		},
+
+		UseAbility: function () {
+			if (!this.data.abilityAvailable) return;
+			// This basically triggers the ability
+			this.data.abilityAvailable = false;
+		},
+
+		attackcd: 0,
+    	Attack: function (target) {
+    		this.data.attacking = false;
+    		if (!target || !target.data.alive) {
+    			return false;
+    		}
+    		this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
+
+			// Get in range of target
+			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
+			.distanceSq(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange*this.data.attackrange;	
+			if (!this.data.attacking) this.moveTo(target.data.x, target.data.y);
+
+			// Turn to face target once in range
+			if (this.data.attacking)
+				this.data.attacking &= this.lookAt(this.data.targetPos);
+			if (!this.data.attacking) return false;
+
+			// Attacking the target
+			if (this.attackcd <= 0) {
+				// TODO: Attack trigger
+				target.takeDamage(this.data.attackdmg);
+				this.attackcd = this.data.attackcdmax;
+			}
+			return true;
+		},
+
+		NoCondition: function() {
+			return true;
+		},
+
 		lookAt: function (targetPos) {
 			var requiredFacing = Math.atan2((this.data.y + this.h/2) - targetPos.y, targetPos.x - (this.data.x + this.w/2));
 			requiredFacing = requiredFacing.mod(2*Math.PI);
@@ -683,39 +746,12 @@ function CreateDrones() {
     	getGridPosition: function() {
     		return Grid.pxPos2GridPos(this.data.x + this.w/2, this.data.y + this.h/2);
     	},
-    	
-		attackcd: 0,
-    	Attack: function (target) {
-    		this.data.attacking = false;
-    		if (!target || !target.data.alive) {
-    			return false;
-    		}
-    		this.data.targetPos = {x:target.data.x + target.w/2, y:target.data.y + target.h/2};
-
-			// Get in range of target
-			this.data.attacking = new Crafty.math.Vector2D(this.data.x, this.data.y)
-			.distanceSq(new Crafty.math.Vector2D(target.data.x, target.data.y)) < this.data.attackrange*this.data.attackrange;	
-			if (!this.data.attacking) this.moveTo(target.data.x, target.data.y);
-
-			// Turn to face target once in range
-			if (this.data.attacking)
-				this.data.attacking &= this.lookAt(this.data.targetPos);
-			if (!this.data.attacking) return false;
-
-			// Attacking the target
-			if (this.attackcd <= 0) {
-				// TODO: Attack trigger
-				target.takeDamage(this.data.attackdmg);
-				this.attackcd = this.data.attackcdmax;
-			}
-			return true;
-		},
-
-		NoCondition: function() {
-			return true;
-		},
 
 		takeDamage: function(damage) {
+			// Take no damage when shield is on
+			if (this.AbilityActive(this)) {
+				return;
+			}
 			// For animation purposes
 			this.data.takingdamage = true;
 			this.data.hitTimer = this.data.hitTimerMax;
@@ -733,24 +769,29 @@ function CreateDrones() {
 				liveGreen--;
 			}
 		},
+		
 		_always: function () {
 			if (!executing || !this.data.alive) return;
 			if (this.attackcd > 0) this.attackcd -= timer.dt;
+			if (this.AbilityActive(this)) this.data.abilityTimer -= timer.dt;
 			this.data.facing = this.data.facing.mod(2*Math.PI);
 			this.data.moving = false;
 			this.data.attacking = false;
 		},
+
 		_react: function () {
 			if (!executing || !this.data.alive) return;
 			
 			// 'with' allows us to drop the 'this.' in the code here
 			try {
+				var self = jQuery.extend(true, {}, this);
 				with (this) {
-					var self = jQuery.extend(true, {}, data);
 					eval(data.instructions);
 				}
 			} catch (err) {
+				console.log(err.message);
 				alert("Uh-oh, something broke! Drop us a bug report, and refresh the page to continue using the game!");
+				executing = false;
 			}
 			// Death happens only at the end of a "frame", which is essentially a "turn"
 			if (this.data.hp <= 0) {

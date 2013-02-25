@@ -36,6 +36,31 @@ function drawHp(ctx, pos, size, hp, hpmax, color) {
 	ctx.fill();
 }
 
+function drawShields(ctx, pos, size) {
+	ctx.globalCompositeOperation = "source-over";
+	ctx.globalCompositeOperation = "lighter";
+	//Random colors
+	var r = Math.random()*55>>0;
+	var g = Math.random()*55>>0;
+	var b = Math.random()*255>>0;
+	var coreColor = "rgba("+r+", "+g+", "+b+", 0.5)";
+	
+	var radius = 1.3*size;
+	var gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius);
+	gradient.addColorStop(0, "black");
+	gradient.addColorStop(0.7, coreColor);
+	gradient.addColorStop(0.75, "rgba(230, 230, 230, .9)");
+	gradient.addColorStop(0.9, coreColor);
+	gradient.addColorStop(1, "black");
+	
+	ctx.fillStyle = gradient;
+	
+	ctx.beginPath();
+	ctx.arc(pos.x, pos.y, radius, 2*Math.PI, false);
+	ctx.fill();
+
+}
+
 // Deprecated style of drawing lasers
 function drawBeams(ctx, pos, apex, targetPos, color) {
 	ctx.lineWidth = 3;
