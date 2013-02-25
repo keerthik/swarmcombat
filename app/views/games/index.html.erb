@@ -14,7 +14,7 @@
   </thead>
   <tbody>
     <% if Game.where('player1 IS NULL').count-1 == 0 %>
-    <tr><td colspan='4'> No open games right now! Why not create one? </td><td><%= link_to 'Create New Game', new_game_path, :class => "btn btn-inverse" %></td></tr>
+    <tr><td colspan='4'> No open games right now! Resume your current games, create a new one! </td><td><%= link_to 'Create New Game', new_game_path, :class => "btn btn-inverse" %></td></tr>
     <% end %>
     <% @games.each do |game| %>
     <% if game.name == "Testing Grounds" %>
