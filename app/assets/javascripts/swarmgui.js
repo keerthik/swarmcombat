@@ -185,8 +185,8 @@ function GuideGUI() {
 		actions.push(temp[1]);
 	}
 
-	var defaultCondition = "<div class='condition outer_link'>"+invalid_link+"(Condition)</a></div>";
-	var defaultAction = "<div class='action outer_link'>"+invalid_link+"(Action)</a></div>";
+	var defaultCondition = invalid_link+"(Condition)</a>";
+	var defaultAction = invalid_link+"(Action)</a>";
 	$("#game_ui")
 	.append('<div id="priority_queue"></div>');
 	$("#priority_queue").append('<p>Conditions and actions will be evaluated from top to bottom by each of your units.');
@@ -281,8 +281,8 @@ function addGuideUnit(condition, action) {
 		'<div id="gui_unit_0" class="gui_unit">' +
 			'<a href="javascript:void(0);" class="btn move_row_up"><i class="icon-arrow-up"></i></a>&nbsp;' +
 			'<a href="javascript:void(0);" class="btn move_row_down"><i class="icon-arrow-down"></i></a>' +
-			'  <div class="gui_well"><div class="well well-small">'+condition+'</div></div>  ' +
-			'  <div class="gui_well"><div class="well well-small">'+action+'</div></div>  ' +
+			'  <div class="gui_well"><div class="well well-small"><div class="condition outer_link">'+condition+'</div></div></div>  ' +
+			'  <div class="gui_well"><div class="well well-small"><div class="action outer_link">'+action+'</div></div></div>  ' +
 			'<a href="javascript:void(0);" class="btn add_row_down"><i class="icon-plus"></i></a>' +
 		'</div>');
 }
