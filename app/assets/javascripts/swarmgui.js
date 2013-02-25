@@ -491,8 +491,6 @@ function AssignCode() {
 	Crafty("Diasim").each(function(){
 		this.data.instructions = (this.data.owner == me)?myCode:theirCode;
 	});
-	console.log(myCode);
-	console.log(theirCode);
 }
 
 function UploadOrders() {
