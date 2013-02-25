@@ -57,7 +57,6 @@ function CreateGUI() {
 	$("#simulate")
 		.click(function(){
 			executing = false;
-			$("#game_ui").remove('#winMessage');
 			simulating = true;
 			InitializeGame();
 			$.get(gameserver+'/get_code', function(data) {
