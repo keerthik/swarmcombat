@@ -51,13 +51,6 @@ var docs = {
 		code: '',
 	},
 
-	moveFd: {
-		format: 'action',
-		type: 'action',
-		docstring: 'The drone will advance in the direction it is facing, within pathing constraints',
-		code: '',
-	},
-
 	self: {
 		format: 'value',
 		type: 'drone.data',
