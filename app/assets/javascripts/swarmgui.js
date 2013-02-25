@@ -171,7 +171,6 @@ function GuideGUI() {
 		console.log("Error retrieving last used code!");
 		current_marked_code = null;
 	}
-	console.log(current_marked_code);
 	var condition_re = /\/\*cond\*\/(.+?)\/\*cond\*\//g;
 	var conditions = [];
 	var temp;

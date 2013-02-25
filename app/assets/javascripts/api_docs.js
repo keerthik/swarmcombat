@@ -24,6 +24,13 @@ var docs = {
 		code: 'Attack(%drone%)',
 	},
 
+	UseAbility: {
+		format: 'action',
+		type: 'action',
+		docstring: 'The drone will attempt to use its special ability',
+		code: '',
+	},
+
 	moveTowardsUnit: {
 		format: 'action',
 		type: 'action',
@@ -53,15 +60,42 @@ var docs = {
 
 	self: {
 		format: 'value',
-		type: 'drone.data',
-		docstring: 'Use this to access the data members of this drone',
+		type: 'drone',
+		docstring: 'The drone running this instruction',
 		code: '',
 	},
 
-	self_hp: {
+	GetHp: {
 		format: 'value',
 		type: 'number',
+		parametric: true,
+		parameters: ['drone'],
 		docstring: 'Current hit points of the drone',
+		code: '',
+	},
+
+	MaxHp: {
+		format: 'value',
+		type: 'number',
+		docstring: 'Max hitpoints of a drone. Use this with a fractional multiplier for detecting hitpoint thresholds',
+		code: '',
+	},
+
+	HasAbility: {
+		format: 'value',
+		type: 'boolean',
+		parametric: true,
+		parameters: ['drone'],
+		docstring: 'True if this drone still has its special ability available',
+		code: '',
+	},
+
+	AbilityActive: {
+		format: 'value',
+		type: 'boolean',
+		parametric: true,
+		parameters: ['drone'],
+		docstring: 'True if this drone is currently using its special ability',
 		code: '',
 	},
 
@@ -119,6 +153,8 @@ var docs = {
 	IsTakingDamage:{
 		format: 'value',
 		type: 'boolean',
+		parametric: true,
+		parameters: ['drone'],
 		docstring: 'True if this drone has taken damage from the enemy in the last 2 simulation frames',
 		code: 'IsTakingDamage()',
 	},
