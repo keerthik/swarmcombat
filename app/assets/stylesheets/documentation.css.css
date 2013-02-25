@@ -2,6 +2,11 @@
 	color: #fff;
 }
 
+p 
+{
+	color: #ddffdd;
+}
+
 .code
 {
 	list-style-type: none;
@@ -15,15 +20,19 @@
 	border-radius: 5px;
 	box-shadow: 0px 0px 25px rgb(20, 128, 216);
 	margin: 0px;
-	margin-top:		60px;
+	margin-top:		40px;
 	margin-bottom:	40px;
 	padding: 		40px;
-	padding-top: 	10px;
+	padding-top: 	30px;
 	overflow: 		auto;
-	width: ;
-	height: ;	
+	width: auto;
+	height: ;
 }
 
+.code a
+{
+	color: #f88;
+}
 .code .action {
 	color: #f88;
 	font-weight: bold;
@@ -34,6 +43,7 @@
 	font-weight: bold;
 }
 .code h1 {
+	margin-top: 20px;
 	color: #66ff33;
 	font-size: 20px;
 	line-height: 1.2em;
@@ -44,39 +54,9 @@
 	color: #ddffdd;
 	/*line-height: 0px; /* to remove white border issue */
 	font-size: 14px;
-	white-space: pre;
 	margin-bottom: 20px;
 	box-shadow-bottom: 0px 1px 25px #fff;
-
+	white-space:	normal;
 }
 
 .code li:empty { display: none; }
-
-.field_with_errors {
-  padding: 2px;
-  background-color: red;
-  display: table;
-}
-
-#error_explanation {
-  width: 450px;
-  border: 2px solid red;
-  padding: 7px;
-  padding-bottom: 0;
-  margin-bottom: 20px;
-  background-color: #f0f0f0;
-  h2 {
-    text-align: left;
-    font-weight: bold;
-    padding: 5px 5px 5px 15px;
-    font-size: 12px;
-    margin: -7px;
-    margin-bottom: 0px;
-    background-color: #c00;
-    color: #fff;
-  }
-  ul li {
-    font-size: 12px;
-    list-style: square;
-  }
-}

@@ -16,13 +16,15 @@
 <div id="game_box">
   <h1><%= @game.name %></h1>
   <h2>You are 
-    <% if @game.player0 == current_user.username %> <span style='color:#66ff33'>Green</span>
+    <% if @game.player0 == current_user.username or @game.name == "Testing Grounds"%> <span style='color:#66ff33'>Green</span>
     <script>me = 0;
-      <% if !@game.code0.nil? %>current_code = "<%= @game.code0 %>";<% end %>
+      <% if !@game.code0.nil? %>current_code = "<%= @game.code0 %>";
+      <% end %>
       <% if !@game.marked_code0.nil? %>current_marked_code = '<%= @game.marked_code0.html_safe %>';<% end %></script><% else %>
-    <% if @game.player1 == current_user.username %> <span style='color:red'>Red</span> 
+    <% if @game.player1 == current_user.username %> <span style='color:red'>Red</span>
     <script>me = 1;
-      <% if !@game.code1.nil? %>current_code = "<%= @game.code1 %>";<% end %>
+      <% if !@game.code1.nil? %>current_code = "<%= @game.code1 %>";
+      <% end %>
       <% if !@game.marked_code1.nil? %>current_marked_code = '<%= @game.marked_code1.html_safe %>';<% end %></script><% else %> spectating 
     <script>me = -1;</script><% end %><% end %>
   </h2>

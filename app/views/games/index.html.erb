@@ -1,4 +1,7 @@
-<h2>Open Games</h2>
+<h2>Open Multiplayer Games</h2>
+<% testgame = Game.where(:name => "Testing Grounds").first %>
+<%= link_to 'Play Test Game', testgame, :class => "btn btn-success" %>
+<br><br>
 <table class='table table-striped table-bordered'>
   <thead>
     <tr>
@@ -10,7 +13,12 @@
     </tr>
   </thead>
   <tbody>
+    <% if Game.where('player1 IS NULL').count-1 == 0 %>
+    <tr><td colspan='4'> No open games right now! Why not create one? </td><td><%= link_to 'Create New Game', new_game_path, :class => "btn btn-inverse" %></td></tr>
+    <% end %>
     <% @games.each do |game| %>
+    <% if game.name == "Testing Grounds" %>
+    <% else %>
     <tr>
       <td><%= game.name %></td>
       <td><%= game.created_at %></td>
@@ -45,7 +53,10 @@
     <% if @games.empty? %>
       <tr><td colspan="5">No games are currently open.</td></tr>
     <% end %>
+    <% end %>
   </tbody>
 </table>
-<%= link_to 'Create Game', new_game_path, :class => "btn btn-inverse" %>
-<%= link_to 'Delete All Games', {:action => 'delete_all_games'}, :class => "btn btn-danger" %>
+<%= link_to 'Create New Game', new_game_path, :class => "btn btn-inverse" %>
+<% if current_user != nil && (current_user.username == "zoator" or current_user.username == "korc") %>
+  <%= link_to 'Delete All Games', {:action => 'delete_all_games'}, :class => "btn btn-danger" %>
+<% end %>

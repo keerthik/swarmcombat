@@ -4,7 +4,7 @@
   <p class="error_msg"><%= msg %></p>
 <% end %>
 <%= form_for @game, :url => {:action => "create"} do |f| %>
-  <%= f.label :name %>
+  <%= f.label :name, :class => "code", :style => "color:#ddffdd" %>
   <%= f.text_field :name %>
   <hr />
   <%= f.submit "Create", :class => "btn btn-primary" %>

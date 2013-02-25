@@ -7,15 +7,17 @@ class GamesController < ApplicationController
 
   def show
     @game = Game.find(params[:id])
-    if (current_user.username != @game[:player0])
-      if (@game[:player1] != nil and @game[:player1] != current_user.username) 
-        # Something about illegal entry/watching only
+    if (@game[:name] != "Testing Grounds")
+      if (current_user.username != @game[:player0])
+        if (@game[:player1] != nil and @game[:player1] != current_user.username) 
+          # Something about illegal entry/watching only
+        else
+          # This is a player joining the empty slot
+          @game.update_attributes(:player1 => current_user.username)
+        end
       else
-        # This is a player joining the empty slot
-        @game.update_attributes(:player1 => current_user.username)
+        # Welcome player 0
       end
-    else
-      # Welcome player 0
     end
   end
 
@@ -50,9 +52,9 @@ class GamesController < ApplicationController
     @game = Game.find(params[:id])
     pid = params[:pid].to_i;
     incode = params[:mycode]
-    #TODO: Make this response contain values obtained from the game server, not these hardcoded ones
+
     if (pid == 0)
-      if (current_user.username == @game[:player0])
+      if (current_user.username == @game[:player0] or @game[:name] == "Testing Grounds")
         code0 = validate_code(incode);
         @game.update_attributes(:code0 => code0)
         if (params[:markedcode])
@@ -82,7 +84,7 @@ class GamesController < ApplicationController
 
   def get_code
     @game = Game.find(params[:id])
-    res = {:code0 => @game.code0, :code1 => @game.code1}
+    res = {:code0 => @game.code0, :code1 => @game.code1, :testCode => 'Retreat();'}
     render :json => res
   end 
 

@@ -15,11 +15,12 @@ var check_ready = setInterval(checkReady,5000);
 var spectating = false;
 var gui_mode = true;
 var link_counter = 0;
-
+var testMode = false;
 var invalid_link = "<a href='javascript:void(0);' class='gui_link invalid' onClick='selectItem(this);'>"
 var valid_link = "<a href='javascript:void(0);' class='gui_link valid' onClick='selectItem(this);'>"
 
 function getServer() {
+	testMode = $('h1').html() == "Testing Grounds";
 	server = (document.URL).split('/games')[0];
 	if (server.indexOf("file:") !== -1) {
 		console.log("Local testing");
@@ -36,17 +37,9 @@ function CreateGUI() {
 	$("#game_ui")
 	.append('<input id="simulate" type="button" class="btn btn-large btn-success disabled" value="Simulate" disabled />');
 
-	/*$("#game_ui")
-	.append('<div class="pop-up code"><span class="value">drone</span>' +
-				'<select>' +
-					'<option>NearestEnemy</option>' +
-					'<option>WeakestEnemy</option>' +
-				'<select></div>');*/
 	
 	checkReady();
 	if (!spectating) {
-		/*$("#game_ui")
-		.append('<br><br><input id="testMode" type="checkbox" value="TestMode">Test Mode<br><br>');*/
 		$('#game_ui').append('<br/><br/>');
 
 		if (gui_mode) {
@@ -71,41 +64,19 @@ function CreateGUI() {
 						theirCode = data['code1'];
 					}
 					else {
-						test = $('#testMode').attr('checked')=='checked';
 						myCode = data['code' + me];
-						theirCode = test?'Retreat();':data['code' + (1-me)];
+						theirCode = testMode?data['testCode']:data['code' + (1-me)];
 					}
 					AssignCode();
 					PrepareExecution();
 				});
 			}
 		});
-	
 	$(".ready")
 		.click(function(){
 			readyFunc();	
 		});
 }
-
-function GUITest() {
-	/* TEST GUI
-	*/
-	var defaultgreen = "Attack(NearestEnemy());";
-	var defaultred = "Attack(NearestEnemy());";
-	$("#game_ui")
-	.append('Green: <input type="text" id="greenstruction" value="'+defaultgreen+'"><br>');
-	$("#game_ui")
-	.append('Red: <input type="text" id="redstruction" value="'+defaultred+'"><br>');
-	$("#game_ui")
-	.append('<input id="ready" type="button" class="btn btn-primary" value="Ready!" />');
-	
-	readyFunc = function () {
-		test = $('#testMode').attr('checked')=='checked';
-		myCode = (me == 0)?$('#greenstruction').val():($('#redstruction').val());
-		theirCode = (me == 1)?$('#greenstruction').val():($('#redstruction').val());
-		PrepareExecution();
-	};
-} 
 
 var requesting_or_returned = false;
 function GUIPassOne() {
@@ -174,10 +145,8 @@ function GUIPassOne() {
 			return;
 		}
 		// Use a timered loop to check for opponent ready
-		// TODO: Determine actual game number (from the URL?)
 		requesting_or_returned = true;
 		var addr = [gameserver, 'ready'].join('/');
-		// TODO: Post my ready state and code to the server
 		$.post(addr, 
 			{pid: me, format: 'json', mycode: myCode}, 
 			function(data) {
@@ -192,49 +161,15 @@ function GUIPassOne() {
 			requesting_or_returned = false;
 			alert("Unable to Connect to Server...Try Again");
 		});
-
-		/*function request_opponent_deployment () {
-			test = $('#testMode').attr('checked')=='checked';
-			console.log(test);
-			requesting_or_returned = true;
-			// Query the server for update after a second
-			$.doTimeout(1000, function () {
-				$.get(addr, 
-					{pid: me, format: 'json', mycode: myCode}, 
-					opponent_deployment)
-				.error(function() {
-					requesting_or_returned = false;
-					alert("Unable to Connect to Server...Try Again");
-				});
-			});
-		}
-
-		var opponent_deployment = function (data) {
-			test = $('#testMode').attr('checked')=='checked';
-			opponentReady = test||data['ready'];
-			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
-			myCode = data['code' + me];
-			theirCode = test?'Retreat();':data['code' + (1-me)];
-			// Let the games begin!
-			if (opponentReady) {
-				// Assign code to all drones
-				AssignCode();
-				// Flip the flag to allow the game to run
-				PrepareExecution();
-				// Upload orders to database
-				UploadOrders();
-			// Or not...yet
-			} else {
-				request_opponent_deployment();
-			}
-		}
-		// Get opponent code and ready state from the server
-		request_opponent_deployment();*/
 	};
 
 }
 
 function GuideGUI() {
+	if (testMode || (current_marked_code!= null && current_marked_code.indexOf("undefined") !== -1)) {
+		console.log("Error retrieving last used code!");
+		current_marked_code = null;
+	}
 	console.log(current_marked_code);
 	var condition_re = /\/\*cond\*\/(.+?)\/\*cond\*\//g;
 	var conditions = [];
@@ -306,7 +241,7 @@ function GuideGUI() {
 			{pid: me, format: 'json', mycode: myCode, markedcode: markedCode}, 
 			function(data) {
 				alert("Instructions Sent!");
-				if (data['ready']) {
+				if (testMode || data['ready']) {
 					$("#simulate").attr('class', 'btn btn-large btn-success');
 					$("#simulate").removeAttr("disabled");
 					clearInterval(check_ready);
@@ -317,43 +252,6 @@ function GuideGUI() {
 			alert("Unable to Connect to Server...Try Again");
 		});
 
-		/*function request_opponent_deployment () {
-			test = $('#testMode').attr('checked')=='checked';
-			console.log(test);
-			requesting_or_returned = true;
-			// Query the server for update after a second
-			$.doTimeout(1000, function () {
-				$.get(addr, 
-					{pid: me, format: 'json', mycode: myCode}, 
-					opponent_deployment)
-				.error(function() {
-					requesting_or_returned = false;
-					alert("Unable to Connect to Server...Try Again");
-				});
-			});
-		}
-
-		var opponent_deployment = function (data) {
-			test = $('#testMode').attr('checked')=='checked';
-			opponentReady = test||data['ready'];
-			// TODO: myCode should be cross-verified via the server to make sure no shenaniganry
-			myCode = data['code' + me];
-			theirCode = test?'Retreat();':data['code' + (1-me)];
-			// Let the games begin!
-			if (opponentReady) {
-				// Assign code to all drones
-				AssignCode();
-				// Flip the flag to allow the game to run
-				PrepareExecution();
-				// Upload orders to database
-				UploadOrders();
-			// Or not...yet
-			} else {
-				request_opponent_deployment();
-			}
-		}
-		// Get opponent code and ready state from the server
-		request_opponent_deployment();*/
 	};
 
 }
@@ -392,6 +290,8 @@ function selectItem(element) {
 	var arith_ops = ["+", "-", "*", "/"];
 	var num_field = "";
 
+	// Hide any existing pop-ups
+	hidePopup();
 	if (element.text == "(Boolean)" || comp_ops.indexOf(element.text) > -1 || 
 		(docs[element.text] && docs[element.text]['type'] == "boolean")) {
 		type = "boolean";
@@ -428,7 +328,14 @@ function selectItem(element) {
 				'<select onchange="insertItem(this);">' +
 					'<option value=""></option>' +
 					options_string +
-				'<select>'+num_field+'</div>');
+				'<select>'+num_field+
+				'<input type="button" class="btn dismiss" value="Cancel" />' +
+				'</div>');
+	$(".dismiss")
+		.click(function() {
+			hidePopup();
+		});
+
 	if (num_field)
 		$("#num_field").keydown(processNumericalInput);
 }
@@ -585,7 +492,7 @@ function UploadOrders() {
 	if (server == "") return;
 	var addr = [server, 'orders', 'create'].join('/');
 	$.post(addr,
-		{order:{'name': "Kickass Strat", 'content': myCode}},
+		{order:{'name': $("h1").html() + me==0?"_Green":"_Red", 'content': myCode}},
 		function(data) {
 			// Proceed if verified
 			//console.log(data);

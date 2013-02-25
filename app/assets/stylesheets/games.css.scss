@@ -12,7 +12,7 @@ body
 	background-color: 		#ccdbee;
 }
 
-table,#priority_queue,#cr-stage
+table,#priority_queue,#cr-stage,.dialog-box
 {	
 	font-family: 	"Consolas", "Courier New", Courier, mono;
 	background-color:	rgba(50,150,200,.3);
@@ -24,7 +24,7 @@ table,#priority_queue,#cr-stage
 table
 {
 	background-color:	rgba(50,150,200,.8);
-	color: #66ff33;
+	color: #ddffdd;
 }
 h1
 {
@@ -66,8 +66,11 @@ h2
 	display: table-cell;
 }
 
-.arg_link
+.arg_link, .outer_link, .gui_link
 {
+	position: relative;
+	left: 0;
+	top: 0;
 	display: inline;
 }
 
@@ -126,11 +129,19 @@ input.action:focus{
 	margin: 0 auto;
 }
 
+.dialog-box {
+	position: absolute;
+	
+	width: 300px;
+	height: 300px
+}
+
+/* Dialog box for popup */
 .pop-up {
 	position:absolute;
-	width: auto;
+	width: 300px;
 	left:	0px;
-	top: -100px;
+	bottom: 0px;
 	padding:15px;
 	margin:1em 0 3em;
 	border:5px solid #5a8f00;
@@ -143,8 +154,11 @@ input.action:focus{
 	box-shadow: 		0px 0px 25px rgb(20, 128, 216);
 }
 
+.pop-up button {
+	margin-left: 5px;
+}
 .pop-up select {
-	margin-left: 20px;
+	margin-left: 5px;
 	margin-top: .5em;
 	font-family: inherit;
 	font-size: inherit;
